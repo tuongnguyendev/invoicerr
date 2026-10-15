@@ -133,11 +133,12 @@ describe('countries/compose: section coverage per country (pinned on purpose, se
         'companyLookup',
         'paymentTerms',
       ],
+      US: ['policy', 'identifiers', 'correctionRoutes', 'taxSystem', 'companyLookup'],
     });
   });
 
   it('every one of the six shipped countries has at least a policy section (the minimum to be "supported" at all)', () => {
-    for (const code of ['DE', 'DZ', 'FR', 'IT', 'PL', 'PT']) {
+    for (const code of ['DE', 'DZ', 'FR', 'IT', 'PL', 'PT', 'US']) {
       expect(composedFor(code).policy).toBeDefined();
     }
   });

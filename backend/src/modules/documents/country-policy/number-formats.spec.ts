@@ -412,7 +412,7 @@ describe('resolveNumberFormatFor - the running series (issue #496)', () => {
   });
 
   it('refuses a country with no catalog - there is no fallback format', () => {
-    expect(() => resolveNumberFormatFor('US', 'invoice', null)).toThrow(/No document number format/);
+    expect(() => resolveNumberFormatFor('BR', 'invoice', null)).toThrow(/No document number format/);
     expect(() => resolveNumberFormatFor(undefined, 'invoice', null)).toThrow(/could not be resolved/);
     expect(() =>
       resolveNumberFormatFor(

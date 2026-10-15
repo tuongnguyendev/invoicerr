@@ -39,7 +39,6 @@
     "SI": { "providers": ["eu-vies"], "noteKey": "companyLookup.notes.SI" },
     "SK": { "providers": ["sk-rpo", "eu-vies"] },
     "TW": { "providers": ["tw-gcis"] },
-    "US": { "noteKey": "companyLookup.notes.US" },
     "VN": { "providers": ["vn-tax-code"], "noteKey": "companyLookup.notes.VN" },
     "XI": { "providers": ["eu-vies"] },
     "ZA": { "noteKey": "companyLookup.notes.ZA" }

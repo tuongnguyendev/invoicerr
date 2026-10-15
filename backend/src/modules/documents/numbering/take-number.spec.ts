@@ -75,10 +75,10 @@ describe('takeDocumentNumberForTransition (issue #496: the format comes from the
   // THE "never waste a number" requirement: a company with no applicable format is refused BEFORE the
   // sequence is ever touched.
   it('refuses a company whose country has no number formats, WITHOUT ever calling the sequence', async () => {
-    findCompany.mockResolvedValue({ country: null, countryCode: 'US', numberFormats: null });
+    findCompany.mockResolvedValue({ country: null, countryCode: 'BR', numberFormats: null });
 
     await expect(takeDocumentNumberForTransition('company-1', 'invoice', 'doc-1')).rejects.toThrow(
-      /No document number format is defined for "invoice" in country "US"/,
+      /No document number format is defined for "invoice" in country "BR"/,
     );
     expect(takeDocumentNumber).not.toHaveBeenCalled();
   });

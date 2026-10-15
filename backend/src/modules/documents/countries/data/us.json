@@ -1,0 +1,592 @@
+{
+  "countryCode": "US",
+  "policy": {
+    "countryCode": "US",
+    "documentTypes": [
+      "quote",
+      "invoice",
+      "credit-note",
+      "expense",
+      "received-invoice",
+      "purchase-order",
+      "goods-receipt"
+    ],
+    "rules": [
+      {
+        "typeId": "quote",
+        "actionId": "save-draft",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Saving a quote draft is an internal product operation, not a legal act — no US federal or state text identified that would specifically govern it. Revisit if the product ever gave a draft status some legal effect of its own."
+        }
+      },
+      {
+        "typeId": "quote",
+        "actionId": "send",
+        "allowed": true,
+        "provenance": {
+          "kind": "legal",
+          "sourceText": "a signature, contract, or other record relating to such transaction may not be denied legal effect, validity, or enforceability solely because it is in electronic form; […] a contract relating to such transaction may not be denied legal effect, validity, or enforceability solely because an electronic signature or electronic record was used in its formation.",
+          "sourceCheckedAt": "2026-09-01"
+        },
+        "notes": "Electronic Signatures in Global and National Commerce Act (\"E-SIGN Act\"), 15 U.S.C. § 7001(a)(1)-(2), Pub. L. 106-229. Originally verified on 2026-08-30 via law.cornell.edu (Legal Information Institute's mirror). RE-VERIFIED live on 2026-09-01 directly against the official source itself: govinfo.gov (U.S. Government Publishing Office), https://www.govinfo.gov/content/pkg/USCODE-2021-title15/html/USCODE-2021-title15-chap96-subchapI-sec7001.htm (\"From the U.S. Government Publishing Office, www.gpo.gov\") — the quoted text matches verbatim. uscode.house.gov (the House Office of the Law Revision Counsel's own site) was also attempted but timed out both times; govinfo.gov is an equally official, GPO-published source, not a secondary mirror. This is a GENERAL rule about electronic records/signatures, not a document-specific one, so it applies equally to a quote (not a tax document) — unlike FR's invoice.send rule, which is grounded in a tax-code article specific to invoices."
+      },
+      {
+        "typeId": "quote",
+        "actionId": "convert-to-invoice",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Turning an accepted quote into an invoice is a product convenience; no US text identified that governs the act of conversion itself (any legal requirement would attach to the resulting invoice, not to this mechanism). Confirm with a dedicated legal review if that ever changes."
+        }
+      },
+      {
+        "typeId": "quote",
+        "actionId": "request-deposit",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Requesting a deposit on a quote, as a draft deposit invoice, is a product convenience of the same nature as convert-to-invoice above; no US text identified that governs the act of creating this draft itself (any legal requirement — including which sales-tax rate a deposit collected against a multi-rate quote should carry, a question this mechanism deliberately leaves unanswered, see actions/request-deposit.ts — would attach to the resulting invoice once issued, not to this mechanism). Confirm with a dedicated legal review if that ever changes."
+        }
+      },
+      {
+        "typeId": "quote",
+        "actionId": "request-installments",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "quote.request-installments: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "quote",
+        "actionId": "duplicate",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "quote.duplicate: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "quote",
+        "actionId": "share-link",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Generating an unauthenticated public link to a quote's PDF (root TODO item 24) is a product convenience — a quote is not even a tax document (see invoice.send above on the E-SIGN Act, which only reaches signed/sent records generally, not this narrower sharing mechanism). No US text identified that specifically governs sharing a link to a document already communicated to its intended recipient by other means; the link's own security (high-entropy token, hashed, never logged in the clear, expiring, revocable) is a technical guarantee documented in share-links/share-links.service.ts, not a distinct legal requirement to source here. Confirm with a dedicated review if that ever changes."
+        }
+      },
+      {
+        "typeId": "quote",
+        "actionId": "request-signature",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "quote.request-signature: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "quote",
+        "actionId": "accept-manually",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "quote.accept-manually: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "quote",
+        "actionId": "delete",
+        "allowed": true,
+        "statuses": ["draft"],
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "quote.delete: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "invoice",
+        "actionId": "save-draft",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "An invoice draft is not yet an issued invoice; no US text identified governing this internal step. Unlike France, the US has no general statutory prohibition on amending an issued invoice that this research turned up — but that absence itself has not been positively confirmed against all 50 states' commercial codes, so it stays unverified rather than being asserted as a fact."
+        },
+        "statuses": ["draft"]
+      },
+      {
+        "typeId": "invoice",
+        "actionId": "send",
+        "allowed": true,
+        "provenance": {
+          "kind": "legal",
+          "sourceText": "a signature, contract, or other record relating to such transaction may not be denied legal effect, validity, or enforceability solely because it is in electronic form; […] a contract relating to such transaction may not be denied legal effect, validity, or enforceability solely because an electronic signature or electronic record was used in its formation.",
+          "sourceCheckedAt": "2026-09-01"
+        },
+        "notes": "Same E-SIGN Act basis as quote.send above (15 U.S.C. § 7001(a)(1)-(2)) — re-verified 2026-09-01 against the same official govinfo.gov (U.S. Government Publishing Office) text as quote.send, see that rule's own notes for the URL and what was tried. The US has no federal e-invoicing mandate and no federally-required transmission channel for a B2B invoice (unlike France's PDP mandate), so a plain electronic transmission is the ordinary case here, not an exception to a stricter default."
+      },
+      {
+        "typeId": "invoice",
+        "actionId": "validate",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "invoice.validate: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "invoice",
+        "actionId": "duplicate",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Duplicating an invoice into a new draft (root of the recurring-documents mechanism, item 5) is a pure product convenience — the new document is born 'draft' and re-enters the ordinary issuance path in full (numbering, sending), so no text identified governs the act of duplication itself. Unlike quote.duplicate (deliberately left UNDECLARED in this same file — see this file's own top-level `notes`, a genuine 'never checked' gap kept as a live example rather than guessed shut), this one WAS actually considered: any legal question (26 U.S.C./state sales-tax recordkeeping) would attach to the ISSUED invoice this eventually produces, not to this draft or the automation that triggers it. Confirm with a dedicated legal review if that ever changes."
+        }
+      },
+      {
+        "typeId": "invoice",
+        "actionId": "record-payment",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Recording a payment is an internal bookkeeping entry; no US text identified governing the act of declaring it in this tool. The resulting balance (paid/outstanding) is a projection shown on screen, never a document status — see invoice.descriptor.ts."
+        }
+      },
+      {
+        "typeId": "invoice",
+        "actionId": "download-xml",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "EN 16931 is a EUROPEAN TECHNICAL STANDARD (the socle of e-invoicing formats under EU Directive 2014/55/EU) — nothing found requiring a US company to produce or offer one; the US has no federal e-invoicing mandate at all (consistent with this same file's own notes elsewhere, and with country-identifiers/data/us.json's own EIN entry). Whether a normalized export should ever be REQUIRED for a US-based company is out of scope here on purpose — this ticket (item 12, \"formats normalisés\") only builds the FORMAT itself, never a legal claim about when it must be used; that question belongs to item 11 (\"canal imposé par pays\") or 15 (\"mentions obligatoires\"), neither of which this rule pretends to answer. This rule only allows the VOLUNTARY download of a normalized export (a product convenience, same category as 'export-accounting' below) — a US seller might still want to hand a European counterparty an EN 16931 document even with no domestic mandate of its own. No `statuses` here: the descriptor itself (invoice.descriptor.ts's own `availableWhen` on \"download-xml\") already restricts the action to already-numbered statuses (BT-1 has cardinality 1..1 in the standard) — a matching `statuses` here would be redundant, not a real extra country-policy restriction (see data/all.spec.ts's own guard against that). What would settle whether this should ever be mandatory: none of this standard's own scope names the US at all, so nothing to check here — only a hypothetical future US requirement would."
+        }
+      },
+      {
+        "typeId": "invoice",
+        "actionId": "export-accounting",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Exporting an invoice to an accounting tool is a product convenience; no US text identified governing the act of offering this export itself (bookkeeping obligations attach to the RECIPIENT of the export, not this mechanism). This action has no implementation registered at all today (see invoice-actions.ts) — the actual block is the 501, not this rule."
+        }
+      },
+      {
+        "typeId": "invoice",
+        "actionId": "share-link",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Same reasoning as 'download-xml' just above, applied to a public share link instead of a normalized export (root TODO item 24): no US text identified that specifically governs sharing a link to an invoice already communicated to its recipient by other means (the US has no federal e-invoicing mandate at all — see 'download-xml''s own note). The link's own security discipline is documented in share-links/share-links.service.ts, not a legal requirement. Confirm with a dedicated review if that ever changes."
+        }
+      },
+      {
+        "typeId": "invoice",
+        "actionId": "delete",
+        "allowed": true,
+        "statuses": ["draft"],
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "invoice.delete: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "credit-note",
+        "actionId": "save-draft",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Saving a credit note draft is an internal product operation. The US has no federal VAT and therefore no direct equivalent of the French VAT-correction 'avoir' regime; whether any state sales-tax rule attaches to a credit memo specifically has not been checked. Confirm with a dedicated review before asserting anything stronger."
+        }
+      },
+      {
+        "typeId": "credit-note",
+        "actionId": "send",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Moving a credit note from 'draft' to 'sent' in this tool is what makes it count against the invoice it corrects (see settlement/credits.ts, root TODO item 8) — an internal product mechanism (no transmission, no email), not itself an act of issuing a credit memo under any state's rules. No US text identified governing this internal status transition specifically; state sales-tax credit-memo rules, if any, would govern the document's CONTENT once issued, not this mechanism. Confirm with a dedicated review before asserting anything stronger."
+        }
+      },
+      {
+        "typeId": "credit-note",
+        "actionId": "share-link",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Same reasoning as invoice.share-link above, applied to a credit note: no US text identified that specifically governs sharing a link to a credit memo already communicated to its recipient. Confirm with the same dedicated review."
+        }
+      },
+      {
+        "typeId": "credit-note",
+        "actionId": "download-xml",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "credit-note.download-xml: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "credit-note",
+        "actionId": "delete",
+        "allowed": true,
+        "statuses": ["draft"],
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "credit-note.delete: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "expense",
+        "actionId": "save-draft",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Recording an expense is an internal bookkeeping entry, migrated from the old `expenses` module (a plain CRUD resource with no status). No US text identified governing this internal recording step itself — federal/state recordkeeping rules (e.g. IRS substantiation requirements) govern what a business must be ABLE to produce, not this specific in-tool mechanism."
+        }
+      },
+      {
+        "typeId": "expense",
+        "actionId": "delete",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Deleting a mis-entered expense is the same capability the old `expenses` module already offered (DELETE /api/expenses/:id); no US text identified specifically governing deletion of such an entry before any accounting close. Confirm with a dedicated review if this core ever needs a \"closed period\" concept."
+        }
+      },
+      {
+        "typeId": "received-invoice",
+        "actionId": "receive",
+        "allowed": true,
+        "statuses": ["received"],
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Recording (or correcting) a received invoice's fields is an internal bookkeeping operation — this tool only logs a fact that already happened (receiving a third party's document), never issues anything. `statuses` above restricts re-writing the fields to 'received' only: once approved or rejected, that review decision must not be silently undone by re-saving field values (same mechanic as `invoice.save-draft` above, restricted to 'draft' for an analogous reason — a decision already made should stay made). The US has no federal e-invoicing mandate and no general requirement to receive invoices through any specific channel (see invoice.download-xml's own note elsewhere in this file), so — unlike FR's own equivalent rule — there is no separate, sourced reception mandate to distinguish this workflow action from here."
+        }
+      },
+      {
+        "typeId": "received-invoice",
+        "actionId": "approve",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Marking a received invoice as approved is an internal review decision; no US text identified governing this act specifically."
+        }
+      },
+      {
+        "typeId": "received-invoice",
+        "actionId": "reject",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Marking a received invoice as rejected (a dispute, a supplier error) is an internal review decision; no US text identified governing this act specifically."
+        }
+      },
+      {
+        "typeId": "received-invoice",
+        "actionId": "record-payment",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "received-invoice.record-payment: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "received-invoice",
+        "actionId": "delete",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Deleting a received-invoice record before any approve/reject decision (a duplicate, a wrong file uploaded) is a product convenience, same nature as `expense.delete` above; no US text identified governing it. The descriptor already restricts this action to the 'received' status alone (see received-invoice.descriptor.ts) — deletion is no longer offered once a review decision is recorded."
+        }
+      },
+      {
+        "typeId": "purchase-order",
+        "actionId": "save-draft",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "purchase-order.save-draft: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "purchase-order",
+        "actionId": "send",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "purchase-order.send: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "purchase-order",
+        "actionId": "cancel-order",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "purchase-order.cancel-order: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "purchase-order",
+        "actionId": "delete",
+        "allowed": true,
+        "statuses": ["draft"],
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "purchase-order.delete: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "goods-receipt",
+        "actionId": "save-draft",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "goods-receipt.save-draft: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "goods-receipt",
+        "actionId": "record",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "goods-receipt.record: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      },
+      {
+        "typeId": "goods-receipt",
+        "actionId": "delete",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "goods-receipt.delete: this is an internal product operation, not a legal act. US invoicing is not federally regulated (26 U.S.C. section 6001 requires records, not a document; no federal e-invoicing mandate), and no US federal or state text identified governs this specific action. The country-file for the United States was restored without a fresh research pass for this action, so it stays unverified rather than guessed. What would settle it: a state-level rule specific to this action."
+        }
+      }
+    ],
+    "numberFormats": {
+      "constraints": [],
+      "formats": [
+        {
+          "typeId": "quote",
+          "pattern": "QUOTE-{year}-{number:4}",
+          "constrainedBy": [],
+          "unconstrained": "No US federal text read by the previous US research pass constrains the number of a quote; state rules were not examined.",
+          "rationale": "Same short form as the other shipped countries, so a company working across them reads one convention.",
+          "reset": "never",
+          "resetProvenance": {
+            "kind": "unverified",
+            "resolutionNote": "No US federal text read constrains the quote number or its yearly restart: 26 U.S.C. section 6001 requires records, not a specific document or numbering. State-level rules were not researched. What would settle it: a state rule on invoice numbering, if any exists."
+          }
+        },
+        {
+          "typeId": "invoice",
+          "pattern": "INVOICE-{year}-{number:4}",
+          "constrainedBy": [],
+          "unconstrained": "No US federal text read by the previous US research pass constrains the number of a invoice; state rules were not examined.",
+          "rationale": "Same short form as the other shipped countries, so a company working across them reads one convention.",
+          "reset": "never",
+          "resetProvenance": {
+            "kind": "unverified",
+            "resolutionNote": "No US federal text read constrains the invoice number or its yearly restart: 26 U.S.C. section 6001 requires records, not a specific document or numbering. State-level rules were not researched. What would settle it: a state rule on invoice numbering, if any exists."
+          }
+        },
+        {
+          "typeId": "credit-note",
+          "pattern": "CN-{year}-{number:4}",
+          "constrainedBy": [],
+          "unconstrained": "No US federal text read by the previous US research pass constrains the number of a credit-note; state rules were not examined.",
+          "rationale": "Same short form as the other shipped countries, so a company working across them reads one convention.",
+          "reset": "never",
+          "resetProvenance": {
+            "kind": "unverified",
+            "resolutionNote": "No US federal text read constrains the credit-note number or its yearly restart: 26 U.S.C. section 6001 requires records, not a specific document or numbering. State-level rules were not researched. What would settle it: a state rule on invoice numbering, if any exists."
+          }
+        },
+        {
+          "typeId": "purchase-order",
+          "pattern": "PURCHASE-ORDER-{year}-{number:4}",
+          "constrainedBy": [],
+          "unconstrained": "No US federal text read by the previous US research pass constrains the number of a purchase-order; state rules were not examined.",
+          "rationale": "Same short form as the other shipped countries, so a company working across them reads one convention.",
+          "reset": "never",
+          "resetProvenance": {
+            "kind": "unverified",
+            "resolutionNote": "No US federal text read constrains the purchase-order number or its yearly restart: 26 U.S.C. section 6001 requires records, not a specific document or numbering. State-level rules were not researched. What would settle it: a state rule on invoice numbering, if any exists."
+          }
+        },
+        {
+          "typeId": "goods-receipt",
+          "pattern": "GOODS-RECEIPT-{year}-{number:4}",
+          "constrainedBy": [],
+          "unconstrained": "No US federal text read by the previous US research pass constrains the number of a goods-receipt; state rules were not examined.",
+          "rationale": "Same short form as the other shipped countries, so a company working across them reads one convention.",
+          "reset": "never",
+          "resetProvenance": {
+            "kind": "unverified",
+            "resolutionNote": "No US federal text read constrains the goods-receipt number or its yearly restart: 26 U.S.C. section 6001 requires records, not a specific document or numbering. State-level rules were not researched. What would settle it: a state rule on invoice numbering, if any exists."
+          }
+        }
+      ],
+      "runningSeries": {
+        "summary": "A series this company already started is kept as it is: no US federal text requires switching a running series to another format.",
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "No US federal text read constrains the running series number or its yearly restart: 26 U.S.C. section 6001 requires records, not a specific document or numbering. State-level rules were not researched. What would settle it: a state rule on invoice numbering, if any exists."
+        },
+        "onViolation": "With no constraint declared, a running series can only fall back when its own pattern cannot be rendered at all; the country format then applies from the next number and the counter is not reset."
+      }
+    },
+    "notes": "Restored 2026-10-15 after the 5-country prune (commit b68685e5) removed it: the old decisions are carried over pair for pair, and every pair the current descriptors define that did not exist then (quote.request-installments, quote.request-signature, quote.accept-manually, quote.duplicate, quote.delete, invoice.validate, invoice.delete, credit-note.download-xml, credit-note.delete, received-invoice.record-payment, purchase-order.*, goods-receipt.*) is allowed with unverified provenance."
+  },
+  "identifiers": {
+    "countryCode": "US",
+    "schemes": [
+      {
+        "scheme": "LEGAL_ID",
+        "appliesTo": "COMPANY",
+        "label": "EIN",
+        "required": false,
+        "helpText": "Employer Identification Number (optional for sole proprietors)",
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "This entry inherits the removed compliance engine's own choice (git tag avant-refonte-documents, backend/src/compliance/profiles/data/us.ts's requiredIdentifiers: scheme LEGAL_ID, label EIN, required false, 'optional for sole proprietors') — that profile carried NO provenance field at all, so the choice was never sourced there either. A live fetch of https://www.irs.gov/businesses/small-businesses-self-employed/employer-id-numbers on 2026-08-30 returned real IRS text: \"You need an EIN if you: Have employees; Will need to pay employment, excise or alcohol, tobacco, and firearms taxes; Withhold taxes on income, other than wages, paid to a non-resident alien\", and separately that partnerships, LLCs, corporations, tax-exempt organizations, estates, trusts, retirement plans/IRAs, REMICs and farmers' cooperatives must obtain one to operate at all. That page settles WHO must obtain an EIN to exist as a business — it does not settle whether an EIN must appear ON AN INVOICE, which is the actual claim this fact makes; the same fetch's own summary states plainly \"the provided content does not address whether an EIN must appear on invoices.\" No US federal invoice-content mandate was found either (consistent with backend/src/modules/documents/country-policy/data/us.json's own notes on the absence of a federal e-invoicing mandate), so there is no separate invoice-content rule to point to. `required: false` is kept as the best-available default (a sole proprietor with no employees and none of the IRS triggers above genuinely has no EIN to put on anything) but is not itself sourced to a text about invoices. What would settle this: a source addressing invoice content specifically, e.g. a state's own invoicing/sales-tax-registration rules, since there is no federal one to check."
+        }
+      }
+    ]
+  },
+  "correctionRoutes": {
+    "countryCode": "US",
+    "routes": [
+      {
+        "routeId": "CREDIT_NOTE",
+        "status": "allowed",
+        "provenance": {
+          "kind": "legal",
+          "sourceText": "Applicable à tout ajustement d'une vente antérieure. Aucun instrument fédéral ni d'État trouvé qui l'impose ou le régisse — ouverte au sens où rien ne l'interdit, pas au sens où un texte l'organise. Fondement du négatif : 26 U.S.C. § 6001 impose des REGISTRES, pas un DOCUMENT ; l'IRS écrit que la loi n'exige aucun type de registre particulier. Source : IRS Pub 583 ; 26 U.S.C. § 6001 — négatif.",
+          "sourceCheckedAt": "2026-08-29"
+        },
+        "notes": "Le credit memo américain est un usage commercial, sans identité fiscale, non déclaré à aucune autorité — un négatif ÉTABLI, pas une recherche qui a échoué. Transcrit depuis docs/compliance/CORRECTION-ROUTES.yaml (meta.updated 2026-08-29), countries.US.routes.CREDIT_NOTE, consulté 2026-08-29."
+      },
+      {
+        "routeId": "DEBIT_NOTE",
+        "status": "allowed",
+        "provenance": {
+          "kind": "legal",
+          "sourceText": "Applicable idem, à la hausse. Même négatif fédéral établi que CREDIT_NOTE ci-dessus. Source : 26 U.S.C. § 6001 ; IRS Pub 583 — négatif.",
+          "sourceCheckedAt": "2026-08-29"
+        },
+        "notes": "Transcrit depuis docs/compliance/CORRECTION-ROUTES.yaml (meta.updated 2026-08-29), countries.US.routes.DEBIT_NOTE, consulté 2026-08-29."
+      },
+      {
+        "routeId": "CORRECTIVE_INVOICE",
+        "status": "allowed",
+        "provenance": {
+          "kind": "legal",
+          "sourceText": "Aucune forme prescrite, donc aucune forme interdite. Même négatif fédéral établi (26 U.S.C. § 6001 ; IRS Pub 583). Source : négatif.",
+          "sourceCheckedAt": "2026-08-29"
+        },
+        "notes": "Transcrit depuis docs/compliance/CORRECTION-ROUTES.yaml (meta.updated 2026-08-29), countries.US.routes.CORRECTIVE_INVOICE, consulté 2026-08-29."
+      },
+      {
+        "routeId": "CANCEL_AND_REPLACE",
+        "status": "allowed",
+        "provenance": {
+          "kind": "legal",
+          "sourceText": "Rien à annuler auprès de personne : aucun document n'a été déposé auprès d'une autorité. Réémettre est un acte purement privé. Même négatif fédéral établi (26 U.S.C. § 6001 ; IRS Pub 583). Source : négatif.",
+          "sourceCheckedAt": "2026-08-29"
+        },
+        "notes": "Transcrit depuis docs/compliance/CORRECTION-ROUTES.yaml (meta.updated 2026-08-29), countries.US.routes.CANCEL_AND_REPLACE, consulté 2026-08-29."
+      },
+      {
+        "routeId": "INTERNAL_CREDIT_NOTE",
+        "status": "allowed",
+        "provenance": {
+          "kind": "legal",
+          "sourceText": "C'est en réalité le cas NORMAL aux États-Unis : toute correction est interne, puisque rien n'est transmis à une autorité. Même négatif fédéral établi (26 U.S.C. § 6001 ; IRS Pub 583). Source : négatif.",
+          "sourceCheckedAt": "2026-08-29"
+        },
+        "notes": "Transcrit depuis docs/compliance/CORRECTION-ROUTES.yaml (meta.updated 2026-08-29), countries.US.routes.INTERNAL_CREDIT_NOTE, consulté 2026-08-29."
+      },
+      {
+        "routeId": "AUTHORITY_ANNULMENT",
+        "status": "forbidden",
+        "provenance": {
+          "kind": "legal",
+          "sourceText": "Sans objet, et c'est un `forbidden` STRUCTUREL, pas une interdiction : il n'existe aucune autorité destinataire à qui adresser une annulation. Source : absence de tout portail fiscal de facturation — négatif.",
+          "sourceCheckedAt": "2026-08-29"
+        },
+        "notes": "Transcrit depuis docs/compliance/CORRECTION-ROUTES.yaml (meta.updated 2026-08-29), countries.US.routes.AUTHORITY_ANNULMENT, consulté 2026-08-29."
+      },
+      {
+        "routeId": "RESUBMIT_SAME_IDENTITY",
+        "status": "forbidden",
+        "provenance": {
+          "kind": "legal",
+          "sourceText": "Sans objet — aucun rejet possible, aucun système ne reçoit la facture. Source : négatif.",
+          "sourceCheckedAt": "2026-08-29"
+        },
+        "notes": "Transcrit depuis docs/compliance/CORRECTION-ROUTES.yaml (meta.updated 2026-08-29), countries.US.routes.RESUBMIT_SAME_IDENTITY, consulté 2026-08-29."
+      },
+      {
+        "routeId": "ANNOTATED_DUPLICATE",
+        "status": "unverified",
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Cette voie n'est même pas mentionnée dans countries.US.routes du YAML (elle a été découverte pendant la recherche française, discovered_by: recherche FR, 2026-08-29) — aucune recherche menée côté États-Unis, jamais promue faute de statut déclaré."
+        },
+        "notes": "Transcrit depuis docs/compliance/CORRECTION-ROUTES.yaml (meta.updated 2026-08-29) — absence constatée dans countries.US.routes, consulté 2026-08-29."
+      },
+      {
+        "routeId": "LEDGER_ANNOTATION",
+        "status": "unverified",
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Cette voie n'est même pas mentionnée dans countries.US.routes du YAML (elle a été découverte pendant la recherche italienne, discovered_by: recherche IT, 2026-08-29) — aucune recherche menée côté États-Unis, jamais promue faute de statut déclaré."
+        },
+        "notes": "Transcrit depuis docs/compliance/CORRECTION-ROUTES.yaml (meta.updated 2026-08-29) — absence constatée dans countries.US.routes, consulté 2026-08-29."
+      },
+      {
+        "routeId": "NO_DOCUMENT_BY_LAW",
+        "status": "unverified",
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Cette voie n'est même pas mentionnée dans countries.US.routes du YAML (elle a été découverte pendant la recherche allemande, discovered_by: recherche DE, 2026-08-29) — aucune recherche menée côté États-Unis, jamais promue faute de statut déclaré."
+        },
+        "notes": "Transcrit depuis docs/compliance/CORRECTION-ROUTES.yaml (meta.updated 2026-08-29) — absence constatée dans countries.US.routes, consulté 2026-08-29."
+      },
+      {
+        "routeId": "COUNTERPARTY_OBJECTION",
+        "status": "unverified",
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "Cette voie n'est même pas mentionnée dans countries.US.routes du YAML (elle a été découverte pendant la recherche allemande, discovered_by: recherche DE, 2026-08-29) — aucune recherche menée côté États-Unis, jamais promue faute de statut déclaré."
+        },
+        "notes": "Transcrit depuis docs/compliance/CORRECTION-ROUTES.yaml (meta.updated 2026-08-29) — absence constatée dans countries.US.routes, consulté 2026-08-29."
+      }
+    ],
+    "notes": "États-Unis — docs/compliance/CORRECTION-ROUTES.yaml countries.US : provenance sourced, consulted 2026-08-29. HEADLINE : il n'existe AUCUNE voie de correction de droit aux États-Unis, parce qu'il n'existe aucune facture de droit — 26 U.S.C. § 6001 impose des REGISTRES, pas un DOCUMENT, et l'IRS écrit que la loi n'exige aucun type de registre particulier. C'est un négatif ÉTABLI, pas une recherche qui a échoué. CAVEAT du YAML, porté tel quel : le négatif FÉDÉRAL est solide ; le négatif INFRA-NATIONAL ne l'est pas — seuls New York, la Californie et le Texas ont été vérifiés, et les 47 autres États n'ont pas été examinés sur la correction de facture (hors périmètre de C1 et de P3-T01 eux-mêmes, pas seulement de cette transcription)."
+  },
+  "taxSystem": {
+    "countryCode": "US",
+    "kind": "SALES_TAX",
+    "stateRates": {
+      "CA": 7.25,
+      "NY": 4,
+      "TX": 6.25,
+      "WA": 6.5,
+      "FL": 6,
+      "IL": 6.25
+    },
+    "nexusSubdivisions": ["CA", "NY", "TX", "WA"],
+    "provenance": {
+      "kind": "unverified",
+      "resolutionNote": "UPDATE (2026-09-01, item 21): a real attempt WAS made this time — this is no longer simply 'no research done'. California's own Revenue and Taxation Code § 6051 (read live via leginfo.legislature.ca.gov, https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=RTC&sectionNum=6051.) states: 'a tax is hereby imposed upon all retailers at the rate of […] 4 3/4 percent thereafter' — NOT 7.25 as this fact encodes for CA. This is not a contradiction to silently fix: California's actual statewide combined rate is layered across SEVERAL separate statutory provisions this pass did not fully trace (the state General Fund rate under § 6051 and its own amending sections, plus the Bradley-Burns Uniform Local Sales and Use Tax under a different part of the Revenue and Taxation Code, plus at least one additional state-level fraction enacted after 1991) — no SINGLE provision states '7.25%' as a unified current figure the way CGI art. 278 states '20%' for France. The other five states' primary sources were fetched (NY Consolidated Laws via nysenate.gov, Texas Tax Code via statutes.capitol.texas.gov, Washington RCW via apps.leg.wa.gov all returned HTTP 200; Florida's leg.state.fl.us and Illinois's ilga.gov did not load in time) but were not read closely enough to confirm or refute their own encoded figures against a specific section, for the same reason: a US state sales tax rate is characteristically a STACK of state + county + city + special-district rates, not a fact one statute settles alone the way a VAT rate is. This whole catalog remains `unverified`, now for a demonstrated reason rather than an unstarted one. What would settle this: either reading every layered provision per state (a much larger undertaking than this pass, and one that would still go stale as rates change), or — as already suggested — wiring a real US sales-tax rate lookup API instead of a hand-typed table."
+    }
+  },
+  "companyLookup": {
+    "countryCode": "US",
+    "noteKey": "companyLookup.notes.US"
+  }
+}

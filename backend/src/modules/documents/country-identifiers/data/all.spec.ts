@@ -20,7 +20,7 @@ describe('country-identifiers/data — the shipped FR, DE, PT, IT and PL files',
   // the prune along with every other country outside FR/PL/IT/PT/DE.
   it('loads exactly the six countries this mechanism ships', () => {
     const codes = ALL_COUNTRY_IDENTIFIER_FILES.map((f) => f.countryCode).sort();
-    expect(codes).toEqual(['DE', 'DZ', 'FR', 'IT', 'PL', 'PT']);
+    expect(codes).toEqual(['DE', 'DZ', 'FR', 'IT', 'PL', 'PT', 'US']);
   });
 
   it('every fact in every shipped file carries a real provenance (already enforced at load time by data/all.ts — this just makes the property explicit here)', () => {

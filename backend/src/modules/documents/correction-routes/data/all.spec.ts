@@ -19,7 +19,7 @@ describe('correction-routes/data/all.ts', () => {
   // SE/SI/SK/US) was `git rm`'d along with its data/xx.json.
   it('ships exactly the six kept-country files (DE/DZ/FR/IT/PL/PT)', () => {
     const countries = ALL_CORRECTION_ROUTES_FILES.map((f) => f.countryCode).sort();
-    expect(countries).toEqual(['DE', 'DZ', 'FR', 'IT', 'PL', 'PT']);
+    expect(countries).toEqual(['DE', 'DZ', 'FR', 'IT', 'PL', 'PT', 'US']);
   });
 
   it('every shipped route carries either legal or unverified provenance, never anything else', () => {

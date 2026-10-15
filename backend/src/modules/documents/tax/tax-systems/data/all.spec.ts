@@ -22,7 +22,7 @@ import { ALL_TAX_SYSTEM_FILES } from './all';
 describe('tax-systems/data — coverage', () => {
   it('loads exactly the six kept countries (DE/DZ/FR/IT/PL/PT)', () => {
     const codes = ALL_TAX_SYSTEM_FILES.map((f) => f.countryCode).sort();
-    expect(codes).toEqual(['DE', 'DZ', 'FR', 'IT', 'PL', 'PT']);
+    expect(codes).toEqual(['DE', 'DZ', 'FR', 'IT', 'PL', 'PT', 'US']);
   });
 
   it('every shipped file carries a real provenance (already enforced at load time by data/all.ts — this just makes the property explicit)', () => {
