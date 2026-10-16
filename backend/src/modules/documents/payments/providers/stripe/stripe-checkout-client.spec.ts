@@ -45,6 +45,22 @@ describe('RealStripeCheckoutClient', () => {
     expect(body).toContain('metadata%5BdocumentId%5D=doc-1');
   });
 
+  it('sends customer_email only when the input carries one', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'cs_test_abc', url: 'https://checkout.stripe.com/pay/cs_test_abc' }),
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+    const client = new RealStripeCheckoutClient();
+
+    await client.createSession('sk_test_123', { ...INPUT, customerEmail: 'pay@client.example' });
+    await client.createSession('sk_test_123', INPUT);
+
+    expect(fetchMock.mock.calls[0][1].body as string).toContain('customer_email=pay%40client.example');
+    expect(fetchMock.mock.calls[1][1].body as string).not.toContain('customer_email');
+  });
+
   it('throws with the provider-reported message on a non-ok response — never invents a session id', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,

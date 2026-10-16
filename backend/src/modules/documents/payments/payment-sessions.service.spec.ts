@@ -1,6 +1,7 @@
 import { vi, type Mock } from 'vitest';
 import { ConflictException, NotFoundException, NotImplementedException } from '@nestjs/common';
 
+import prisma from '@/prisma/prisma.service';
 import { ChannelCredentialsService } from '@/modules/company/channels/channels.service';
 
 import { DocumentsService } from '../documents.service';
@@ -16,6 +17,12 @@ import { PaymentWebhookVerificationError } from './provider';
  *  real either: a bare object exposing only the methods this service actually calls, the exact same
  *  "mock the methods actually called, not the whole class" shape that file's own header documents. */
 vi.mock('./payment-sessions.persistence');
+
+// The client email lookup (customer prefill) reads Prisma directly; each test sets what it returns.
+vi.mock('@/prisma/prisma.service', () => ({
+  __esModule: true,
+  default: { client: { findFirst: vi.fn() } },
+}));
 
 // Issue #416 ("payment methods per client") - `../payment-methods/persistence` reaches Prisma
 // directly too (`isMethodAllowedForClient`), same reason as above. Defaulted to "always allowed" so
@@ -55,6 +62,49 @@ beforeEach(() => {
   vi.clearAllMocks();
   // Issue #416's own default - see this file's own header on `vi.mock('../payment-methods/persistence')`.
   isMethodAllowedForClient.mockResolvedValue(true);
+  (prisma.client.findFirst as Mock).mockResolvedValue(null);
+});
+
+describe('PaymentSessionsService.createInvoiceCheckoutSession - customer email prefill', () => {
+  const INPUT = { successUrl: 'https://app/s', cancelUrl: 'https://app/c' };
+
+  async function open(contacts: { email: string | null; isPrimary: boolean; position: number }[] | null) {
+    const { service, documentsService, channelCredentials, provider } = buildService();
+    documentsService.getDocument.mockResolvedValue({
+      id: 'inv-1',
+      displayNumber: 'INV-1',
+      status: 'sent',
+      data: { currency: 'USD', client: 'client-1' },
+    });
+    documentsService.getSettlement.mockResolvedValue({ settlement: { outstandingMinor: 5000 } });
+    channelCredentials.resolveActive.mockResolvedValue({ config: { secretKey: 'sk' } });
+    resolveCompanyPaymentProviderId.mockResolvedValue('stripe');
+    findPendingSessionForDocument.mockResolvedValue(null);
+    provider.createCheckoutSession.mockResolvedValue({ providerSessionId: 'cs_1', checkoutUrl: 'https://c' });
+    createCheckoutSession.mockResolvedValue({ checkoutUrl: 'https://c' });
+    (prisma.client.findFirst as Mock).mockResolvedValue(contacts ? { contacts } : null);
+    await service.createInvoiceCheckoutSession('company-1', 'inv-1', INPUT);
+    return provider.createCheckoutSession.mock.calls[0][1];
+  }
+
+  it('passes the client primary contact email, with a company-scoped lookup', async () => {
+    const input = await open([
+      { email: 'other@client.example', isPrimary: false, position: 1 },
+      { email: 'pay@client.example', isPrimary: true, position: 0 },
+    ]);
+    expect(input.customerEmail).toBe('pay@client.example');
+    expect(prisma.client.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 'client-1', companyId: 'company-1' } }),
+    );
+  });
+
+  it('omits it when the client has no email, a malformed one, or does not exist', async () => {
+    expect((await open([{ email: null, isPrimary: true, position: 0 }])).customerEmail).toBeUndefined();
+    expect(
+      (await open([{ email: 'not an email', isPrimary: true, position: 0 }])).customerEmail,
+    ).toBeUndefined();
+    expect((await open(null)).customerEmail).toBeUndefined();
+  });
 });
 
 describe('PaymentSessionsService.createInvoiceCheckoutSession', () => {

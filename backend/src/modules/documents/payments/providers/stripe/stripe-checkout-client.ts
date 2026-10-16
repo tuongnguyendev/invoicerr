@@ -46,6 +46,8 @@ export class RealStripeCheckoutClient implements StripeCheckoutClient {
     body.set('line_items[0][price_data][currency]', input.currency.toLowerCase());
     body.set('line_items[0][price_data][unit_amount]', String(input.amountMinor));
     body.set('line_items[0][price_data][product_data][name]', input.description);
+    // Prefills (and, per Stripe, locks) the email on the hosted page; omitted when unknown.
+    if (input.customerEmail) body.set('customer_email', input.customerEmail);
     for (const [key, value] of Object.entries(input.metadata)) {
       body.set(`metadata[${key}]`, value);
     }

@@ -6,9 +6,11 @@ import {
   NotImplementedException,
 } from '@nestjs/common';
 
+import prisma from '@/prisma/prisma.service';
 import { fromMinor } from '@/utils/financial';
 import { ChannelCredentialsService } from '@/modules/company/channels/channels.service';
 
+import { findPrimaryContact } from '../../clients/primary-contact';
 import { DocumentsService } from '../documents.service';
 import { isMethodAllowedForClient } from '../payment-methods/persistence';
 import { PaymentProviderRegistry } from './payment-provider-registry';
@@ -50,6 +52,36 @@ const PROVIDER_NOTE_LABELS: Record<string, string> = {
 
 function providerNoteLabel(providerId: string): string {
   return PROVIDER_NOTE_LABELS[providerId] ?? providerId;
+}
+
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * The invoice client's primary-contact email, company-scoped, for the provider to prefill. Best
+ * effort: no client, no email, a malformed one or a failed lookup all answer undefined, because a
+ * missing prefill must never stop someone from paying.
+ */
+async function customerEmailFor(
+  companyId: string,
+  clientId: string | undefined,
+): Promise<string | undefined> {
+  if (!clientId) return undefined;
+  try {
+    const client = await prisma.client.findFirst({
+      where: { id: clientId, companyId },
+      select: { contacts: { select: { email: true, isPrimary: true, position: true } } },
+    });
+    const contacts = (client?.contacts ?? []).map((contact) => ({
+      ...contact,
+      firstName: null,
+      lastName: null,
+      phone: null,
+    }));
+    const email = (findPrimaryContact(contacts)?.email ?? contacts.find((c) => c.email)?.email ?? '').trim();
+    return EMAIL_SHAPE.test(email) ? email : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export interface CreateInvoiceCheckoutSessionInput {
@@ -197,6 +229,8 @@ export class PaymentSessionsService {
       // TRUSTED for that purpose today: the actual correlation is `providerSessionId`, looked up
       // straight from the persisted row (`findSessionByProviderRef`) — see this class's own header.
       metadata: { companyId, documentId },
+      // Both the portal and the public pay page reach here, so both get the prefill.
+      customerEmail: await customerEmailFor(companyId, clientId),
     });
 
     const session = await createCheckoutSession({

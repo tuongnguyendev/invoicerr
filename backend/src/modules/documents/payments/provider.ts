@@ -56,6 +56,11 @@ export interface CreateCheckoutSessionInput {
    *  `providerSessionId`, never by re-reading this metadata back out of the event — see
    *  `payment-sessions.service.ts#handleWebhookEvent`). */
   metadata: Record<string, string>;
+  /** The invoice client's contact email, when one is on file and well-formed. A provider that can
+   *  prefill its hosted page with it (Stripe's `customer_email`) does, so the payer neither retypes it
+   *  nor pays under a different address than the one the receipt should reach. Optional, and a
+   *  provider without an equivalent field simply ignores it. */
+  customerEmail?: string;
 }
 
 export interface CreateCheckoutSessionResult {
