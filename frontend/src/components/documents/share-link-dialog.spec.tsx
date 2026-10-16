@@ -87,3 +87,16 @@ describe("<ShareLinkDialog> — copy outcome", () => {
     expect(input.value.endsWith("/api/documents/public/token-abc")).toBe(true)
   })
 })
+
+describe("<ShareLinkDialog> — invoice payment link", () => {
+  it("labels the invoice link as the customer payment link and resolves the pay page on the frontend origin", async () => {
+    renderDialog(async () => ({ path: "/pay/token-abc" }))
+
+    expect(screen.getByText("Customer payment link")).toBeTruthy()
+    fireEvent.click(await screen.findByTestId("share-link-create-button"))
+
+    const input = (await screen.findByTestId("share-link-created-url")) as HTMLInputElement
+    expect(input.value).toBe(`${window.location.origin}/pay/token-abc`)
+    expect(input.getAttribute("aria-label")).toBe("Customer payment link")
+  })
+})

@@ -126,10 +126,14 @@ describe("Public download links (item 24) — created, copied, revoked from the 
 				cy.get('[data-cy="share-link-created-url"]')
 					.invoke("val")
 					.then((rawUrl) => {
-						const publicUrl = String(rawUrl);
-						expect(publicUrl, "une URL absolue vers /api/public/documents/.../pdf").to.match(
-							/^https?:\/\/.+\/api\/public\/documents\/[0-9a-f]{64,}\/pdf$/,
+						// An invoice's share link is the customer PAY PAGE (/pay/:token), not the bare PDF.
+						const payUrl = String(rawUrl);
+						expect(payUrl, "une URL absolue vers la page de paiement /pay/...").to.match(
+							/^https?:\/\/.+\/pay\/[0-9a-f]{64,}$/,
 						);
+						// The raw PDF stays reachable under the same token, on the API origin.
+						const token = payUrl.split("/pay/")[1];
+						const publicUrl = `${api}/api/public/documents/${token}/pdf`;
 
 						// WITH NO session AT ALL — the central proof of this ticket.
 						cy.clearCookies();

@@ -108,6 +108,13 @@ export {
 } from "./use-document-schedules"
 export { useShareLinks, useCreateShareLink, useRevokeShareLink, shareLinksKey } from "./use-share-links"
 export {
+  usePublicInvoice,
+  useCreatePublicInvoiceCheckout,
+  publicInvoiceKey,
+  type PublicInvoiceSummary,
+  type PublicInvoiceLine,
+} from "./use-public-invoice"
+export {
   usePublicSignature,
   usePublicSignatureDocument,
   useRequestPublicSignatureOtp,

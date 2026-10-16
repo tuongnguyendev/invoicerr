@@ -31,6 +31,14 @@ export async function resolveCompanyPaymentProviderId(companyId: string): Promis
   return company?.paymentProviderId ?? null;
 }
 
+/** Whether this company has an ACTIVE credential row for `providerId` — a plain count, no decryption
+ *  and no credential-audit event (unlike `ChannelCredentialsService.resolveActive`), because the public
+ *  pay page asks this on every page view just to decide whether to draw a "Pay" button. */
+export async function hasActiveProviderConfig(companyId: string, providerId: string): Promise<boolean> {
+  const count = await prisma.companyChannelConfig.count({ where: { companyId, providerId, isActive: true } });
+  return count > 0;
+}
+
 export interface PaymentCheckoutSessionResult {
   id: string;
   companyId: string;

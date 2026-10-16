@@ -56,8 +56,14 @@ export interface CreatedShareLink {
    *  documents) to build the actual copyable URL; this service only ever knows the API-relative
    *  path, never which origin externally reaches it. */
   token: string;
-  /** "/api/public/documents/:token/pdf" — see `PublicDocumentsController`. */
+  /** The link staff should hand the customer. For an INVOICE this is the FRONTEND pay page
+   *  ("/pay/:token", `pages/pay/[token].tsx`), which shows the invoice and a "Pay online" button; for
+   *  every other type it is the same API-relative PDF path as `pdfPath`. NOT API-relative for an
+   *  invoice: the caller must resolve it against the frontend origin, not `VITE_BACKEND_URL`. */
   path: string;
+  /** "/api/public/documents/:token/pdf" — see `PublicDocumentsController`. Always the raw PDF, for
+   *  every type, including the invoice whose `path` points at the pay page instead. */
+  pdfPath: string;
   expiresAt: Date;
 }
 
@@ -87,8 +93,14 @@ function toSummary(record: ShareLinkTokenRecord, now: Date): ShareLinkSummary {
   };
 }
 
-function publicPathFor(token: string): string {
+function publicPdfPathFor(token: string): string {
   return `/api/public/documents/${token}/pdf`;
+}
+
+/** An invoice's share link lands on the pay page (a customer holding it wants to PAY, and the page
+ *  offers the PDF too); quotes and credit notes have nothing to pay, so they keep the bare PDF. */
+function publicPathFor(typeId: string, token: string): string {
+  return typeId === 'invoice' ? `/pay/${token}` : publicPdfPathFor(token);
 }
 
 @Injectable()
@@ -151,7 +163,13 @@ export class ShareLinksService {
     const expiresAt = new Date(Date.now() + DEFAULT_TTL_MS);
     const record = await createShareLinkToken({ companyId, typeId, documentId, tokenHash, expiresAt });
 
-    return { id: record.id, token, path: publicPathFor(token), expiresAt: record.expiresAt };
+    return {
+      id: record.id,
+      token,
+      path: publicPathFor(typeId, token),
+      pdfPath: publicPdfPathFor(token),
+      expiresAt: record.expiresAt,
+    };
   }
 
   /** Metadata only — see `ShareLinkTokenRecord`/`ShareLinkSummary`: there is no `token`/`tokenHash`

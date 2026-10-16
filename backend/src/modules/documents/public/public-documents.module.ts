@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { DocumentsCoreModule } from '../documents-core.module';
 import { PublicDocumentsController } from './public-documents.controller';
+import { PublicInvoicePayService } from './public-invoice-pay.service';
 import { PublicSignaturesController } from './public-signatures.controller';
 
 /**
@@ -22,5 +23,6 @@ import { PublicSignaturesController } from './public-signatures.controller';
 @Module({
   imports: [DocumentsCoreModule],
   controllers: [PublicDocumentsController, PublicSignaturesController],
+  providers: [PublicInvoicePayService],
 })
 export class PublicDocumentsModule {}

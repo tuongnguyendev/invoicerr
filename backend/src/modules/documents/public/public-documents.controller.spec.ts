@@ -129,7 +129,7 @@ function buildControllers() {
     eventsBridge as never,
     {} as unknown as AttachmentsService,
   );
-  const publicController = new PublicDocumentsController(shareLinksService, documentsService);
+  const publicController = new PublicDocumentsController(shareLinksService, documentsService, {} as never);
 
   return { documentsController, publicController, shareLinksService, documentsService };
 }
@@ -251,6 +251,31 @@ describe('PublicDocumentsController — the public PDF is the SAME pipeline as t
     expect((revokedError as NotFoundException).getStatus()).toBe(
       (unknownError as NotFoundException).getStatus(),
     );
+  });
+});
+
+describe('PublicDocumentsController — pay page routes', () => {
+  const summary = { typeId: 'invoice' } as never;
+  const invoicePay = {
+    getSummary: vi.fn(async () => summary),
+    createCheckoutSession: vi.fn(async () => ({ checkoutUrl: 'https://checkout.stripe.test/s' })),
+  };
+  const controller = new PublicDocumentsController({} as never, {} as never, invoicePay as never);
+
+  it('GET :token delegates to the summary and sets no-store', async () => {
+    const res = fakeResponse();
+    await expect(controller.getSharedInvoice('tok', res as never)).resolves.toBe(summary);
+    expect(invoicePay.getSummary).toHaveBeenCalledWith('tok');
+    expect(res.headers['Cache-Control']).toBe('private, no-store');
+  });
+
+  it('POST :token/checkout-session returns the checkout URL, throttled to 10/minute', async () => {
+    await expect(controller.createCheckoutSession('tok')).resolves.toEqual({
+      checkoutUrl: 'https://checkout.stripe.test/s',
+    });
+    const handler = PublicDocumentsController.prototype.createCheckoutSession;
+    expect(Reflect.getMetadata('THROTTLER:LIMITdefault', handler)).toBe(10);
+    expect(Reflect.getMetadata('THROTTLER:TTLdefault', handler)).toBe(60_000);
   });
 });
 

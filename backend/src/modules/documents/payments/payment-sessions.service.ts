@@ -18,6 +18,7 @@ import {
   claimSessionForCompletion,
   createCheckoutSession,
   findPendingSessionForDocument,
+  hasActiveProviderConfig,
   listSessionsForDocument,
   markSessionFailed,
   PaymentCheckoutSessionResult,
@@ -209,6 +210,20 @@ export class PaymentSessionsService {
     });
 
     return { checkoutUrl: session.checkoutUrl };
+  }
+
+  /**
+   * Cheap "would `createInvoiceCheckoutSession` get as far as the provider" probe for the public pay
+   * page: this company's provider is registered, has an active credential row, and the invoice's
+   * client is not restricted away from it. Deliberately does NOT look at status or balance — the
+   * caller already knows both. A `true` here is a hint for drawing a button, never a promise: the POST
+   * re-checks everything.
+   */
+  async isOnlinePaymentAvailable(companyId: string, clientId: string | undefined): Promise<boolean> {
+    const providerId = (await resolveCompanyPaymentProviderId(companyId)) || DEFAULT_PROVIDER_ID;
+    if (!this.providerRegistry.resolve(providerId)) return false;
+    if (!(await hasActiveProviderConfig(companyId, providerId))) return false;
+    return isMethodAllowedForClient(companyId, clientId, providerId);
   }
 
   /** Staff-facing read — see `payment-sessions.persistence.ts#listSessionsForDocument`'s own header;

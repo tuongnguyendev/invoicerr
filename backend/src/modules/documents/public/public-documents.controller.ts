@@ -13,7 +13,7 @@
  * `InvitationsController` already import `Public` from the same place — this follows the ONE
  * decorator that is actually wired to the guard, not the one that merely looks like it is.
  */
-import { Controller, Get, NotFoundException, Param, Res } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, Post, Res } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
@@ -21,7 +21,9 @@ import { Response } from 'express';
 import { Public } from '@thallesp/nestjs-better-auth';
 
 import { DocumentsService } from '../documents.service';
+import { InvoiceCheckoutSessionResult } from '../payments/payment-sessions.service';
 import { ShareLinksService } from '../share-links/share-links.service';
+import { PublicInvoicePayService, PublicInvoiceSummary } from './public-invoice-pay.service';
 
 @ApiTags('public-documents')
 @Controller('public/documents')
@@ -29,6 +31,7 @@ export class PublicDocumentsController {
   constructor(
     private readonly shareLinksService: ShareLinksService,
     private readonly documentsService: DocumentsService,
+    private readonly invoicePayService: PublicInvoicePayService,
   ) {}
 
   /**
@@ -98,5 +101,51 @@ export class PublicDocumentsController {
     // and only demands revalidation, which is not the promise this response needs.
     res.setHeader('Cache-Control', 'private, no-store');
     res.send(pdfBuffer);
+  }
+
+  /**
+   * The JSON behind the customer pay page (`/pay/:token`). Same token, same uniform 404 as the PDF
+   * route, plus a 404 for a token that opens a non-invoice document — see `PublicInvoicePayService`.
+   * Default (global) throttle: a cheap read, no render. `no-store` for the same reason as the PDF: it
+   * carries the invoice's contents and a live paid/outstanding balance.
+   */
+  @Public()
+  @Get(':token')
+  @ApiOperation({
+    summary: 'Invoice summary for the public pay page — no session required',
+    description:
+      'Returns what the invoice PDF already shows (seller and client names, lines, totals) plus the ' +
+      'paid/outstanding balance and `canPayOnline`. Unknown, expired, revoked tokens and tokens for a ' +
+      'non-invoice document all answer the same 404.',
+  })
+  @ApiParam({ name: 'token', type: String })
+  @ApiResponse({ status: 200, description: 'Invoice summary' })
+  @ApiResponse({ status: 404, description: 'Unknown, expired, or revoked token — indistinguishable' })
+  async getSharedInvoice(
+    @Param('token') token: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<PublicInvoiceSummary> {
+    res.setHeader('Cache-Control', 'private, no-store');
+    return this.invoicePayService.getSummary(token);
+  }
+
+  /**
+   * Starts a provider Checkout for the token's invoice and returns its URL. 10/minute per IP: each
+   * miss is a real call to the payment provider's API on the company's own credentials.
+   */
+  @Public()
+  @Post(':token/checkout-session')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Open an online-payment Checkout for a shared invoice — no session required',
+    description:
+      'Same guards as the client portal: only a "sent" invoice with an outstanding balance and a ' +
+      'connected payment provider (501 otherwise). The return URLs point back at `/pay/:token`.',
+  })
+  @ApiParam({ name: 'token', type: String })
+  @ApiResponse({ status: 201, description: 'Checkout URL' })
+  @ApiResponse({ status: 404, description: 'Unknown, expired, or revoked token, or not an invoice' })
+  async createCheckoutSession(@Param('token') token: string): Promise<InvoiceCheckoutSessionResult> {
+    return this.invoicePayService.createCheckoutSession(token);
   }
 }

@@ -31,8 +31,8 @@ const outputSchema = {
  * run-document-action.tool.ts's own header on why a thrown `HttpException` already reaches the LLM
  * caller verbatim via the MCP SDK's own error handling.
  *
- * `ctx.baseUrl` (not an env var) is what turns the service's API-relative `path`
- * ("/api/public/documents/:token/pdf") into an absolute URL — see types.ts's own comment on why.
+ * `ctx.baseUrl` (not an env var) is what turns the service's API-relative `pdfPath`
+ * (`pdfPath`, "/api/public/documents/:token/pdf") into an absolute URL — see types.ts's own comment on why.
  */
 export const getDocumentPdfLinkTool: ToolDescriptor<typeof inputSchema> = {
   name: 'get_document_pdf_link',
@@ -54,7 +54,7 @@ export const getDocumentPdfLinkTool: ToolDescriptor<typeof inputSchema> = {
     }
 
     const link = await ctx.services.shareLinksService.create(ctx.companyId, input.typeId, input.documentId);
-    const downloadUrl = `${ctx.baseUrl}${link.path}`;
+    const downloadUrl = `${ctx.baseUrl}${link.pdfPath}`;
 
     return {
       content: [

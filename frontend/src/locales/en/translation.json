@@ -4387,6 +4387,41 @@
   "publicPage": {
     "poweredBy": "Powered by"
   },
+  "publicPay": {
+    "title": "Invoice {{number}}",
+    "titleNoNumber": "Invoice",
+    "from": "From {{name}}",
+    "billedTo": "Billed to",
+    "issued": "Issued",
+    "due": "Due",
+    "linesCaption": "Invoice lines",
+    "columns": {
+      "description": "Description",
+      "quantity": "Qty",
+      "unitPrice": "Unit price",
+      "total": "Total"
+    },
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "total": "Total",
+    "paid": "Already paid",
+    "credited": "Credited",
+    "outstanding": "Amount due",
+    "paidBadge": "Paid",
+    "settled": "This invoice is paid. Thank you!",
+    "unavailable": "Online payment is not available for this invoice. Please pay using the details on the PDF.",
+    "payButton": "Pay {{amount}} online",
+    "downloadPdf": "Download PDF",
+    "payError": "Could not open the payment page. Please try again.",
+    "notConnected": "Online payment is not available right now. Please pay using the details on the PDF.",
+    "returnSuccess": "Thank you, your payment was received. It may take a moment to show as paid.",
+    "returnPaid": "Thank you, your payment was received and this invoice is now paid.",
+    "returnCancelled": "Payment cancelled. Nothing was charged.",
+    "invalidTitle": "This link is invalid or has expired",
+    "invalidDescription": "Ask the sender for a new payment link.",
+    "loadErrorTitle": "Could not load this invoice",
+    "loadErrorDescription": "Please check your connection and reload the page."
+  },
   "documents": {
     "index": {
       "title": "Documents",
@@ -5364,6 +5399,10 @@
     "shareLink": {
       "title": "Public share link",
       "description": "Anyone with this link can download the PDF — no account needed. Shown once: copy it now.",
+      "titleInvoice": "Customer payment link",
+      "descriptionInvoice": "Send this link to your customer. They can view the invoice, download the PDF and pay online — no account needed. Shown once: copy it now.",
+      "createdUrlLabelInvoice": "Customer payment link",
+      "createdUrlLabel": "Public link",
       "createButton": "Create a link",
       "createError": "The share link could not be created.",
       "copy": "Copy",

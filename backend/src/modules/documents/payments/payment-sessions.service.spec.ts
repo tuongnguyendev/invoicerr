@@ -635,3 +635,25 @@ describe('PaymentSessionsService.handleWebhookEvent', () => {
     );
   });
 });
+
+describe('PaymentSessionsService.isOnlinePaymentAvailable', () => {
+  it('is true only with a registered provider, an active credential row and an allowed client', async () => {
+    const { service, providerRegistry } = buildService();
+    resolveCompanyPaymentProviderId.mockResolvedValue(null); // falls back to "stripe"
+    (persistence.hasActiveProviderConfig as Mock).mockResolvedValue(true);
+
+    await expect(service.isOnlinePaymentAvailable('company-1', 'client-1')).resolves.toBe(true);
+    expect(persistence.hasActiveProviderConfig).toHaveBeenCalledWith('company-1', 'stripe');
+
+    (persistence.hasActiveProviderConfig as Mock).mockResolvedValue(false);
+    await expect(service.isOnlinePaymentAvailable('company-1', 'client-1')).resolves.toBe(false);
+
+    (persistence.hasActiveProviderConfig as Mock).mockResolvedValue(true);
+    isMethodAllowedForClient.mockResolvedValue(false);
+    await expect(service.isOnlinePaymentAvailable('company-1', 'client-1')).resolves.toBe(false);
+
+    isMethodAllowedForClient.mockResolvedValue(true);
+    providerRegistry.resolve.mockReturnValue(undefined);
+    await expect(service.isOnlinePaymentAvailable('company-1', 'client-1')).resolves.toBe(false);
+  });
+});

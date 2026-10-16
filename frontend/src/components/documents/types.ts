@@ -546,7 +546,12 @@ export interface DocumentAuthorityEvent {
 export interface CreatedShareLink {
   id: string
   token: string
+  /** What to hand the recipient. For an INVOICE it is the frontend pay page ("/pay/:token"); for any
+   *  other type it equals `pdfPath`. Resolve it against the frontend origin unless it starts with
+   *  "/api/" (share-link-dialog.tsx's `publicUrlFor`). */
   path: string
+  /** "/api/public/documents/:token/pdf" — the raw PDF, for every type. */
+  pdfPath: string
   expiresAt: string
 }
 

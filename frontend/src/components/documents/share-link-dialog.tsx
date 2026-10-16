@@ -37,7 +37,11 @@ interface ShareLinkDialogProps {
  * deliberately left empty: production, where nginx proxies "/api" on the SAME origin (nginx.conf).
  */
 function publicUrlFor(path: string): string {
-  const base = import.meta.env.VITE_BACKEND_URL || window.location.origin
+  // An invoice's `path` is the FRONTEND pay page ("/pay/:token", not under "/api"): it lives on this
+  // app's own origin, never on the backend's. Every other type's `path` is the API-relative PDF route.
+  const base = path.startsWith("/api/")
+    ? import.meta.env.VITE_BACKEND_URL || window.location.origin
+    : window.location.origin
   return `${base}${path}`
 }
 
@@ -59,6 +63,8 @@ export function ShareLinkDialog({ typeId, documentId, open, onOpenChange }: Shar
   const [justCreatedUrl, setJustCreatedUrl] = useState<string | null>(null)
 
   const activeLinks = (links ?? []).filter((link) => link.active)
+  // An invoice's link is the customer payment page, not a bare PDF: say so in the dialog.
+  const isInvoice = typeId === "invoice"
 
   const invalidateList = () => queryClient.invalidateQueries({ queryKey: shareLinksKey(typeId, documentId) })
 
@@ -100,8 +106,12 @@ export function ShareLinkDialog({ typeId, documentId, open, onOpenChange }: Shar
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent data-cy="share-link-dialog">
         <DialogHeader>
-          <DialogTitle>{t("documents.shareLink.title")}</DialogTitle>
-          <DialogDescription>{t("documents.shareLink.description")}</DialogDescription>
+          <DialogTitle>
+            {isInvoice ? t("documents.shareLink.titleInvoice") : t("documents.shareLink.title")}
+          </DialogTitle>
+          <DialogDescription>
+            {isInvoice ? t("documents.shareLink.descriptionInvoice") : t("documents.shareLink.description")}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -122,6 +132,11 @@ export function ShareLinkDialog({ typeId, documentId, open, onOpenChange }: Shar
             >
               <Input
                 readOnly
+                aria-label={
+                  isInvoice
+                    ? t("documents.shareLink.createdUrlLabelInvoice")
+                    : t("documents.shareLink.createdUrlLabel")
+                }
                 value={justCreatedUrl}
                 onFocus={(event) => event.currentTarget.select()}
                 className="font-mono text-xs"

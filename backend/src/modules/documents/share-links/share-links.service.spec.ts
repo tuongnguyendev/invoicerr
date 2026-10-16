@@ -156,7 +156,9 @@ describe('ShareLinksService', () => {
       // >= 32 bytes of entropy, hex-encoded -> at least 64 hex chars (share-link-token.ts's own
       // TOKEN_BYTES = 32).
       expect(result.token).toMatch(/^[0-9a-f]{64,}$/);
-      expect(result.path).toBe(`/api/public/documents/${result.token}/pdf`);
+      // An invoice's link is the pay page; the raw PDF stays available as `pdfPath`.
+      expect(result.path).toBe(`/pay/${result.token}`);
+      expect(result.pdfPath).toBe(`/api/public/documents/${result.token}/pdf`);
       expect(result.expiresAt.getTime()).toBeGreaterThan(Date.now());
 
       const rows = mockedPrismaService.__rows;
