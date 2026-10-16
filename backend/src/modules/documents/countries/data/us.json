@@ -370,10 +370,10 @@
       "formats": [
         {
           "typeId": "quote",
-          "pattern": "QUOTE-{year}-{number:4}",
+          "pattern": "Q-{year}-{number:4}",
           "constrainedBy": [],
           "unconstrained": "No US federal text read by the previous US research pass constrains the number of a quote; state rules were not examined.",
-          "rationale": "Same short form as the other shipped countries, so a company working across them reads one convention.",
+          "rationale": "The owner's chosen convention (INV-/Q-/CN-, year, 4-digit sequence); no US federal text constrains it.",
           "reset": "never",
           "resetProvenance": {
             "kind": "unverified",
@@ -382,10 +382,10 @@
         },
         {
           "typeId": "invoice",
-          "pattern": "INVOICE-{year}-{number:4}",
+          "pattern": "INV-{year}-{number:4}",
           "constrainedBy": [],
           "unconstrained": "No US federal text read by the previous US research pass constrains the number of a invoice; state rules were not examined.",
-          "rationale": "Same short form as the other shipped countries, so a company working across them reads one convention.",
+          "rationale": "The owner's chosen convention (INV-/Q-/CN-, year, 4-digit sequence); no US federal text constrains it.",
           "reset": "never",
           "resetProvenance": {
             "kind": "unverified",
@@ -397,7 +397,7 @@
           "pattern": "CN-{year}-{number:4}",
           "constrainedBy": [],
           "unconstrained": "No US federal text read by the previous US research pass constrains the number of a credit-note; state rules were not examined.",
-          "rationale": "Same short form as the other shipped countries, so a company working across them reads one convention.",
+          "rationale": "The owner's chosen convention (INV-/Q-/CN-, year, 4-digit sequence); no US federal text constrains it.",
           "reset": "never",
           "resetProvenance": {
             "kind": "unverified",
