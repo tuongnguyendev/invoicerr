@@ -21,7 +21,7 @@ vi.mock('@/prisma/prisma.service', () => ({
 describe('getCompanyInvoiceTransportId', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('returns null when the company has chosen no transport — never a default', async () => {
+  it('returns null when the company has chosen no transport — the default is applied by the caller, not here', async () => {
     (prisma.company.findUnique as Mock).mockResolvedValue({ invoiceTransportId: null });
     await expect(getCompanyInvoiceTransportId('co-1')).resolves.toBeNull();
   });

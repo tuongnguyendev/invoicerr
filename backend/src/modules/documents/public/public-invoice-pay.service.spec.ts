@@ -9,7 +9,7 @@ import { PublicInvoicePayService } from './public-invoice-pay.service';
 vi.mock('@/prisma/prisma.service', () => ({
   __esModule: true,
   default: {
-    company: { findUniqueOrThrow: vi.fn(async () => ({ name: 'Acme SAS' })) },
+    company: { findUniqueOrThrow: vi.fn(async () => ({ name: 'Acme SAS', dateFormat: 'MM/dd/yyyy' })) },
     client: { findFirst: vi.fn(async () => ({ name: 'Globex' })) },
   },
 }));
@@ -23,6 +23,7 @@ const INVOICE = {
     issueDate: '2026-01-01',
     dueDate: '2026-01-31',
     currency: 'EUR',
+    notes: 'Thanks!\nNet 15 days.',
     lines: [{ description: 'Consulting', quantity: 2, unitPrice: 50, vatRate: '20' }],
   },
 };
@@ -76,8 +77,8 @@ describe('PublicInvoicePayService.getSummary', () => {
       typeId: 'invoice',
       displayNumber: 'INV-1',
       status: 'sent',
-      issueDate: '2026-01-01',
-      dueDate: '2026-01-31',
+      issueDate: '01/01/2026',
+      dueDate: '01/31/2026',
       currency: 'EUR',
       sellerName: 'Acme SAS',
       clientName: 'Globex',
@@ -87,6 +88,7 @@ describe('PublicInvoicePayService.getSummary', () => {
       paid: 20,
       outstanding: 100,
       canPayOnline: true,
+      notes: 'Thanks!\nNet 15 days.',
     });
     expect(summary.lines).toEqual([
       { description: 'Consulting', quantity: 2, unitPrice: 50, lineTotal: 100 },
@@ -98,6 +100,23 @@ describe('PublicInvoicePayService.getSummary', () => {
     expect(prisma.client.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: 'client-1', companyId: 'company-1' } }),
     );
+  });
+
+  it('prints dates only, in the seller format, even when stored as ISO timestamps', async () => {
+    const { service, documents } = build();
+    documents.getDocument.mockResolvedValue({
+      ...INVOICE,
+      data: { ...INVOICE.data, issueDate: '2026-10-15T15:12:39.662Z', dueDate: '2026-10-30T00:00:00.000Z' },
+    });
+    const summary = await service.getSummary('tok');
+    expect(summary.issueDate).toBe('10/15/2026');
+    expect(summary.dueDate).toBe('10/30/2026');
+  });
+
+  it('notes is null when the invoice carries none', async () => {
+    const { service, documents } = build();
+    documents.getDocument.mockResolvedValue({ ...INVOICE, data: { ...INVOICE.data, notes: '' } });
+    expect((await service.getSummary('tok')).notes).toBeNull();
   });
 
   it('canPayOnline is false when no provider is connected, or nothing is outstanding', async () => {

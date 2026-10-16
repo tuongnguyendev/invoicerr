@@ -87,6 +87,7 @@ import { buildAcubeTransport } from './transports/acube-transport';
 import { buildBillitTransport } from './transports/billit-transport';
 import { buildChorusProTransport } from './transports/chorus-pro-transport';
 import { buildEmailTransport } from './transports/email-transport';
+import { buildManualTransport } from './transports/manual-transport';
 import { buildInvopopTransport } from './transports/invopop-transport';
 import { buildIopoleTransport } from './transports/iopole-transport';
 import { buildKsefTransport } from './transports/ksef-transport';
@@ -262,6 +263,9 @@ function buildTransportRegistry(
   signingCertificates: SigningCertificatesService,
 ): TransportRegistry {
   const registry = new TransportRegistry();
+  // "manual" - share-link-only: no outbound I/O (transports/manual-transport.ts). Listed FIRST so the
+  // settings select offers the fork's preferred, default channel at the top.
+  registry.register('manual', 'Share link only (no email)', buildManualTransport());
   registry.register(
     'email',
     'Email',

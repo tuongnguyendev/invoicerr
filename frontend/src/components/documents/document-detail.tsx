@@ -58,7 +58,9 @@ import { hasUnsavedChanges } from "@/components/documents/form-dirty"
 import { isEmptyFieldValue, resolveListFields } from "@/components/documents/list-fields"
 import { MarkQuoteAcceptedDialog } from "@/components/documents/mark-quote-accepted-dialog"
 import { SectionCard } from "@/components/documents/section-card"
+import { shouldOfferShareLinkAfter } from "@/components/documents/manual-send"
 import { ShareLinkDialog } from "@/components/documents/share-link-dialog"
+import { useCompany } from "@/hooks/queries"
 import type {
   DerivedDocumentTotals,
   DocumentActionDescriptor,
@@ -128,6 +130,10 @@ export function hasImportTransmissionEvidence(instance: DocumentInstance): boole
 export function DocumentDetail({ descriptor, instance }: DocumentDetailProps) {
   const navigate = useNavigate()
   const [snapshot, setSnapshot] = useState(instance.data)
+  // The invoice's "send" through the manual transport delivers nothing by itself: the owner shares the
+  // customer pay link next, so the share-link dialog opens the moment the send is accepted.
+  const { data: company } = useCompany()
+  const [shareLinkAfterSendOpen, setShareLinkAfterSendOpen] = useState(false)
 
   const state = useDocumentForm({
     descriptor,
@@ -150,6 +156,7 @@ export function DocumentDetail({ descriptor, instance }: DocumentDetailProps) {
       // persists the payload it was given, so the response IS what the form holds, normalized; an
       // action with no `transitions` (record a payment, export) leaves the record's data alone, and
       // resetting the form to that untouched data would throw away what is still being typed.
+      if (shouldOfferShareLinkAfter(descriptor.id, actionId, company)) setShareLinkAfterSendOpen(true)
       const action = descriptor.actions.find((candidate) => candidate.id === actionId)
       if (!hasUnsavedChanges(state.form.getValues(), snapshot) || action?.transitions) {
         setSnapshot(result.data)
@@ -170,6 +177,14 @@ export function DocumentDetail({ descriptor, instance }: DocumentDetailProps) {
       <DocumentActionParamsHost state={state} />
       <DocumentActionLockConfirmHost state={state} />
       <DocumentActionDeleteConfirmHost state={state} />
+      {shareLinkAfterSendOpen && (
+        <ShareLinkDialog
+          typeId={descriptor.id}
+          documentId={instance.id}
+          open={shareLinkAfterSendOpen}
+          onOpenChange={setShareLinkAfterSendOpen}
+        />
+      )}
     </Form>
   )
 }

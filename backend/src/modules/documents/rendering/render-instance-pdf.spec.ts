@@ -640,21 +640,21 @@ describe('renderDocumentInstance - the status line follows the render purpose (i
 
   it('the delivery render of a quote being sent prints no status line and never "sending"', async () => {
     const html = await htmlFor('sending', 'delivery');
-    expect(html).not.toContain('>Status:<');
+    expect(html).not.toContain('>Status<');
     expect(html).not.toContain('sending');
     // The rest of the header is untouched: the number and the date still print.
     expect(html).toContain('Q-2026-0001');
-    expect(html).toContain('>Date:<');
+    expect(html).toContain('>Date<');
   });
 
   it('an on-demand render of a draft still prints "Status: draft", the working copy\'s warning', async () => {
     const html = await htmlFor('draft', 'on-demand');
-    expect(html).toContain('<div><strong>Status:</strong> draft</div>');
+    expect(html).toContain('<span class="k">Status</span> draft</div>');
   });
 
   it('an on-demand render of an issued quote (signed) prints none: it stands in for the delivered copy', async () => {
     const html = await htmlFor('signed', 'on-demand');
-    expect(html).not.toContain('>Status:<');
+    expect(html).not.toContain('>Status<');
   });
 });
 

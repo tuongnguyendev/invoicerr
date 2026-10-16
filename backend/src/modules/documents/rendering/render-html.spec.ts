@@ -867,7 +867,7 @@ describe('renderDocumentHtml', () => {
 
   describe('document numbering (numbering/)', () => {
     const numberedDescriptor: DocumentTypeDescriptor = {
-      id: 'invoice',
+      id: 'generic-document',
       label: 'Invoice',
       fields: [],
       actions: [],
@@ -926,7 +926,7 @@ describe('renderDocumentHtml', () => {
   // number; the "on every page" rule (art. 4.º n.º 3) is a PDF-footer concern, see render-pdf.spec.ts.
   describe('ATCUD (Portugal)', () => {
     const numberedDescriptor: DocumentTypeDescriptor = {
-      id: 'invoice',
+      id: 'generic-document',
       label: 'Invoice',
       fields: [],
       actions: [],
@@ -972,7 +972,7 @@ describe('renderDocumentHtml', () => {
   // thing under test here is how the HTML PRESENTS them.
   describe('legal mentions', () => {
     const invoiceDescriptor: DocumentTypeDescriptor = {
-      id: 'invoice',
+      id: 'generic-document',
       label: 'Invoice',
       fields: [{ key: 'notes', kind: 'longText', label: 'Notes' }],
       actions: [],
@@ -1085,7 +1085,7 @@ describe('renderDocumentHtml', () => {
   // file's own spec, not here.
   describe('payment QR', () => {
     const invoiceDescriptor: DocumentTypeDescriptor = {
-      id: 'invoice',
+      id: 'generic-document',
       label: 'Invoice',
       fields: [],
       actions: [],
@@ -1148,7 +1148,7 @@ describe('renderDocumentHtml', () => {
   describe('payment methods', () => {
     it('renders one item per presentation — label, lines, and a link when present', () => {
       const html = renderDocumentHtml({
-        descriptor: { id: 'invoice', label: 'Invoice', fields: [], actions: [] },
+        descriptor: { id: 'generic-document', label: 'Invoice', fields: [], actions: [] },
         instance: baseInstance,
         company: baseCompany,
         referenceLabels: {},
@@ -1174,7 +1174,7 @@ describe('renderDocumentHtml', () => {
 
     it('a method with no lines and no link (cash) still gets its own item, just the label', () => {
       const html = renderDocumentHtml({
-        descriptor: { id: 'invoice', label: 'Invoice', fields: [], actions: [] },
+        descriptor: { id: 'generic-document', label: 'Invoice', fields: [], actions: [] },
         instance: baseInstance,
         company: baseCompany,
         referenceLabels: {},
@@ -1187,7 +1187,7 @@ describe('renderDocumentHtml', () => {
 
     it('renders NOTHING at all — not an empty frame — when `paymentMethods` is absent', () => {
       const html = renderDocumentHtml({
-        descriptor: { id: 'invoice', label: 'Invoice', fields: [], actions: [] },
+        descriptor: { id: 'generic-document', label: 'Invoice', fields: [], actions: [] },
         instance: baseInstance,
         company: baseCompany,
         referenceLabels: {},
@@ -1199,7 +1199,7 @@ describe('renderDocumentHtml', () => {
 
     it('renders NOTHING when `paymentMethods` is an empty array — no method currently enabled', () => {
       const html = renderDocumentHtml({
-        descriptor: { id: 'invoice', label: 'Invoice', fields: [], actions: [] },
+        descriptor: { id: 'generic-document', label: 'Invoice', fields: [], actions: [] },
         instance: baseInstance,
         company: baseCompany,
         referenceLabels: {},
@@ -1211,14 +1211,14 @@ describe('renderDocumentHtml', () => {
 
     it('two DIFFERENTLY-configured methods render visibly different HTML — the actual defect this fixes', () => {
       const cashOnly = renderDocumentHtml({
-        descriptor: { id: 'invoice', label: 'Invoice', fields: [], actions: [] },
+        descriptor: { id: 'generic-document', label: 'Invoice', fields: [], actions: [] },
         instance: baseInstance,
         company: baseCompany,
         referenceLabels: {},
         paymentMethods: [{ id: 'cash', label: 'Cash', lines: [] }],
       });
       const bankTransferConfigured = renderDocumentHtml({
-        descriptor: { id: 'invoice', label: 'Invoice', fields: [], actions: [] },
+        descriptor: { id: 'generic-document', label: 'Invoice', fields: [], actions: [] },
         instance: baseInstance,
         company: baseCompany,
         referenceLabels: {},
@@ -1234,7 +1234,7 @@ describe('renderDocumentHtml', () => {
 
     it('the section heading is translated by `language`, the method label/lines never are', () => {
       const html = renderDocumentHtml({
-        descriptor: { id: 'invoice', label: 'Invoice', fields: [], actions: [] },
+        descriptor: { id: 'generic-document', label: 'Invoice', fields: [], actions: [] },
         instance: baseInstance,
         company: baseCompany,
         referenceLabels: {},
@@ -1251,7 +1251,12 @@ describe('renderDocumentHtml', () => {
   // VAT display (`DocumentTotals.showVat`) — a VAT-exempt seller, or a document whose every line
   // resolves to exactly 0%, gets no "Net"/"VAT ... 0.00" rows at all: a single "Total" row.
   describe('totals — VAT display (showVat)', () => {
-    const descriptor: DocumentTypeDescriptor = { id: 'invoice', label: 'Invoice', fields: [], actions: [] };
+    const descriptor: DocumentTypeDescriptor = {
+      id: 'generic-document',
+      label: 'Invoice',
+      fields: [],
+      actions: [],
+    };
 
     it('renders Net + one row per VAT-breakdown entry + Total when showVat is true (the pre-existing behaviour)', () => {
       const html = renderDocumentHtml({
@@ -1604,7 +1609,7 @@ describe('renderDocumentHtml', () => {
 
     it("renders the totals block, the boolean Yes/No pair, and the unnumbered placeholder in Italian — VAT reads 'IVA', never 'TVA' or 'VAT'", () => {
       const descriptor: DocumentTypeDescriptor = {
-        id: 'invoice',
+        id: 'generic-document',
         label: 'Invoice',
         fields: [{ key: 'isPaid', kind: 'boolean', label: 'Is Paid' }],
         actions: [],
@@ -1635,7 +1640,7 @@ describe('renderDocumentHtml', () => {
 
     it("renders the same document in French — VAT reads 'TVA', the boolean prints 'Oui', never the Italian or English chrome", () => {
       const descriptor: DocumentTypeDescriptor = {
-        id: 'invoice',
+        id: 'generic-document',
         label: 'Invoice',
         fields: [{ key: 'isPaid', kind: 'boolean', label: 'Is Paid' }],
         actions: [],
@@ -1664,7 +1669,7 @@ describe('renderDocumentHtml', () => {
 
     it('the SEPA "scan to pay" caption translates too, in the same language as everything else', () => {
       const descriptor: DocumentTypeDescriptor = {
-        id: 'invoice',
+        id: 'generic-document',
         label: 'Invoice',
         fields: [],
         actions: [],
@@ -1718,7 +1723,7 @@ describe('renderDocumentHtml', () => {
 
   describe('branding (chantier B, 2026-09-15)', () => {
     const richDescriptor: DocumentTypeDescriptor = {
-      id: 'invoice',
+      id: 'generic-document',
       label: 'Invoice',
       actions: [],
       usesLegalMentions: true,
@@ -1840,7 +1845,7 @@ describe('renderDocumentHtml', () => {
   // `numberingDisplayState` (types.ts) computes from, rather than `isNumberingAllowedFrom` directly.
   describe("the number placeholder - matches the screen's own numberingDisplayState, never a separate rule", () => {
     const numberedTypeDescriptor: DocumentTypeDescriptor = {
-      id: 'invoice',
+      id: 'generic-document',
       label: 'Invoice',
       fields: [],
       actions: [],

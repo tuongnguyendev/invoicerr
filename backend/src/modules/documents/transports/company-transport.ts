@@ -9,7 +9,9 @@ import prisma from '@/prisma/prisma.service';
  * config), and nothing else in invoice-actions.ts should need to know that.
  *
  * Null (not undefined, not throwing) means "not configured" — a perfectly normal state for a company
- * that has never set one, which is exactly the state invoice-actions.ts's "send" blocks on.
+ * that has never set one. This function stays honest about that (raw stored choice, no default):
+ * invoice-actions.ts's `resolveInvoiceTransport` is what turns null into the fork's default "manual"
+ * transport (transports/manual-transport.ts), after the country-mandate check.
  */
 export async function getCompanyInvoiceTransportId(companyId: string): Promise<string | null> {
   const company = await prisma.company.findUnique({

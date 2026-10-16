@@ -12,6 +12,7 @@ import CountryReadinessAlert from "@/components/country-readiness-alert"
 import CountrySelect from "@/components/country-select"
 import CurrencySelect from "@/components/currency-select"
 import DocumentLanguageSelect from "@/components/document-language-select"
+import { orderTransportsManualFirst } from "@/components/documents/manual-send"
 import { fromMinor, toMinor } from "@/components/documents/totals-calculator"
 import CurrencyRatesSettings from "./currency-rates.settings"
 import DataExportSettings from "./data-export.settings"
@@ -1149,7 +1150,9 @@ export default function CompanySettings() {
                     onValueChange={(value) => {
                       if (value) field.onChange(value)
                     }}
-                    value={field.value || ""}
+                    // An unset choice IS "manual" on the backend (`resolveInvoiceTransport`'s fork
+                    // default), so the select shows it rather than an empty "Not configured".
+                    value={field.value || "manual"}
                   >
                     <FormControl>
                       <SelectTrigger className="w-full" data-cy="company-invoice-transport-select">
@@ -1159,7 +1162,7 @@ export default function CompanySettings() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent data-cy="company-invoice-transport-options">
-                      {(invoiceTransports ?? []).map((transport) => (
+                      {orderTransportsManualFirst(invoiceTransports ?? []).map((transport) => (
                         <SelectItem
                           key={transport.id}
                           value={transport.id}

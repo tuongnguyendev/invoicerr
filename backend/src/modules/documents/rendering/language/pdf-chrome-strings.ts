@@ -101,6 +101,35 @@ export interface PdfChromeStrings {
    *  the two can differ (a weekend/holiday issue date resolves to the last published business day
    *  before/on it). */
   exchangeRate(rate: string, date: string): string;
+  /** The dedicated invoice/quote/credit-note layout's own vocabulary (`render-business-html.ts`) - the
+   *  compact page that replaces the generic one-card-per-field render for those three types. Titles
+   *  are translated here (unlike `descriptor.label`, which stays plain data) because on this layout
+   *  the title is the document's headline, and an Italian client should not read "Invoice". */
+  layout: PdfLayoutStrings;
+}
+
+export interface PdfLayoutStrings {
+  invoiceTitle: string;
+  quoteTitle: string;
+  creditNoteTitle: string;
+  billTo: string;
+  dueDate: string;
+  /** "Ref" prefix of the origin / corrected-document reference line. */
+  ref: string;
+  /** Label of the client's own reference / PO number. */
+  clientReference: string;
+  description: string;
+  quantity: string;
+  unit: string;
+  unitPrice: string;
+  discount: string;
+  vatRate: string;
+  amount: string;
+  subtotal: string;
+  paid: string;
+  amountDue: string;
+  notes: string;
+  reason: string;
 }
 
 type StringTuple<N extends number, R extends string[] = []> = R['length'] extends N
@@ -137,6 +166,27 @@ const EN: PdfChromeStrings = {
   vatInNationalCurrency: (currency) => `VAT in ${currency}`,
   taxableInNationalCurrency: (currency) => `Taxable amount in ${currency}`,
   exchangeRate: (rate, date) => `Exchange rate: ${rate} (${date})`,
+  layout: {
+    invoiceTitle: 'Invoice',
+    quoteTitle: 'Quote',
+    creditNoteTitle: 'Credit note',
+    billTo: 'Bill to',
+    dueDate: 'Due date',
+    ref: 'Ref',
+    clientReference: 'Your reference',
+    description: 'Description',
+    quantity: 'Qty',
+    unit: 'Unit',
+    unitPrice: 'Unit price',
+    discount: 'Discount',
+    vatRate: 'VAT',
+    amount: 'Amount',
+    subtotal: 'Subtotal',
+    paid: 'Paid',
+    amountDue: 'Amount due',
+    notes: 'Notes',
+    reason: 'Reason',
+  },
 };
 
 const FR: PdfChromeStrings = {
@@ -176,6 +226,27 @@ const FR: PdfChromeStrings = {
   vatInNationalCurrency: (currency) => `TVA en ${currency}`,
   taxableInNationalCurrency: (currency) => `Base imposable en ${currency}`,
   exchangeRate: (rate, date) => `Taux de change : ${rate} (${date})`,
+  layout: {
+    invoiceTitle: 'Facture',
+    quoteTitle: 'Devis',
+    creditNoteTitle: 'Avoir',
+    billTo: 'Facturé à',
+    dueDate: "Date d'échéance",
+    ref: 'Réf.',
+    clientReference: 'Votre référence',
+    description: 'Désignation',
+    quantity: 'Qté',
+    unit: 'Unité',
+    unitPrice: 'Prix unitaire',
+    discount: 'Remise',
+    vatRate: 'TVA',
+    amount: 'Montant',
+    subtotal: 'Sous-total',
+    paid: 'Payé',
+    amountDue: 'Reste à payer',
+    notes: 'Notes',
+    reason: 'Motif',
+  },
 };
 
 const IT: PdfChromeStrings = {
@@ -215,6 +286,27 @@ const IT: PdfChromeStrings = {
   vatInNationalCurrency: (currency) => `IVA in ${currency}`,
   taxableInNationalCurrency: (currency) => `Imponibile in ${currency}`,
   exchangeRate: (rate, date) => `Tasso di cambio: ${rate} (${date})`,
+  layout: {
+    invoiceTitle: 'Fattura',
+    quoteTitle: 'Preventivo',
+    creditNoteTitle: 'Nota di credito',
+    billTo: 'Intestata a',
+    dueDate: 'Scadenza',
+    ref: 'Rif.',
+    clientReference: 'Vostro riferimento',
+    description: 'Descrizione',
+    quantity: 'Qtà',
+    unit: 'Unità',
+    unitPrice: 'Prezzo unitario',
+    discount: 'Sconto',
+    vatRate: 'IVA',
+    amount: 'Importo',
+    subtotal: 'Subtotale',
+    paid: 'Pagato',
+    amountDue: 'Da pagare',
+    notes: 'Note',
+    reason: 'Motivo',
+  },
 };
 
 const PL: PdfChromeStrings = {
@@ -254,6 +346,27 @@ const PL: PdfChromeStrings = {
   vatInNationalCurrency: (currency) => `VAT w ${currency}`,
   taxableInNationalCurrency: (currency) => `Podstawa opodatkowania w ${currency}`,
   exchangeRate: (rate, date) => `Kurs wymiany: ${rate} (${date})`,
+  layout: {
+    invoiceTitle: 'Faktura',
+    quoteTitle: 'Oferta',
+    creditNoteTitle: 'Nota kredytowa',
+    billTo: 'Nabywca',
+    dueDate: 'Termin płatności',
+    ref: 'Ref.',
+    clientReference: 'Państwa numer referencyjny',
+    description: 'Opis',
+    quantity: 'Ilość',
+    unit: 'Jedn.',
+    unitPrice: 'Cena jedn.',
+    discount: 'Rabat',
+    vatRate: 'VAT',
+    amount: 'Kwota',
+    subtotal: 'Suma częściowa',
+    paid: 'Zapłacono',
+    amountDue: 'Do zapłaty',
+    notes: 'Uwagi',
+    reason: 'Powód',
+  },
 };
 
 const DE: PdfChromeStrings = {
@@ -293,6 +406,27 @@ const DE: PdfChromeStrings = {
   vatInNationalCurrency: (currency) => `USt. in ${currency}`,
   taxableInNationalCurrency: (currency) => `Bemessungsgrundlage in ${currency}`,
   exchangeRate: (rate, date) => `Wechselkurs: ${rate} (${date})`,
+  layout: {
+    invoiceTitle: 'Rechnung',
+    quoteTitle: 'Angebot',
+    creditNoteTitle: 'Gutschrift',
+    billTo: 'Rechnungsempfänger',
+    dueDate: 'Fälligkeitsdatum',
+    ref: 'Ref.',
+    clientReference: 'Ihre Referenz',
+    description: 'Bezeichnung',
+    quantity: 'Menge',
+    unit: 'Einheit',
+    unitPrice: 'Einzelpreis',
+    discount: 'Rabatt',
+    vatRate: 'USt.',
+    amount: 'Betrag',
+    subtotal: 'Zwischensumme',
+    paid: 'Bezahlt',
+    amountDue: 'Offener Betrag',
+    notes: 'Hinweise',
+    reason: 'Grund',
+  },
 };
 
 const PT: PdfChromeStrings = {
@@ -332,6 +466,27 @@ const PT: PdfChromeStrings = {
   vatInNationalCurrency: (currency) => `IVA em ${currency}`,
   taxableInNationalCurrency: (currency) => `Valor tributável em ${currency}`,
   exchangeRate: (rate, date) => `Taxa de câmbio: ${rate} (${date})`,
+  layout: {
+    invoiceTitle: 'Fatura',
+    quoteTitle: 'Orçamento',
+    creditNoteTitle: 'Nota de crédito',
+    billTo: 'Faturar a',
+    dueDate: 'Data de vencimento',
+    ref: 'Ref.',
+    clientReference: 'A sua referência',
+    description: 'Descrição',
+    quantity: 'Qtd.',
+    unit: 'Unidade',
+    unitPrice: 'Preço unitário',
+    discount: 'Desconto',
+    vatRate: 'IVA',
+    amount: 'Montante',
+    subtotal: 'Subtotal',
+    paid: 'Pago',
+    amountDue: 'Em dívida',
+    notes: 'Notas',
+    reason: 'Motivo',
+  },
 };
 
 const CHROME_STRINGS: Record<RenderLanguage, PdfChromeStrings> = {

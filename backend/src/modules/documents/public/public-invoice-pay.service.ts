@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { formatLayoutDate } from '../rendering/render-business-html';
 import prisma from '@/prisma/prisma.service';
 import { fromMinor } from '@/utils/financial';
 
@@ -31,6 +32,9 @@ export interface PublicInvoiceSummary {
   sellerName: string;
   clientName: string | null;
   lines: PublicInvoiceLine[];
+  /** The invoice's free-text notes, line breaks included — shown below the lines. Plain text: the
+   *  page renders it as text, never as markup. */
+  notes: string | null;
   subtotal: number;
   tax: number;
   total: number;
@@ -87,7 +91,10 @@ export class PublicInvoicePayService {
 
     const clientId = asString(data.client);
     const [company, client] = await Promise.all([
-      prisma.company.findUniqueOrThrow({ where: { id: companyId }, select: { name: true } }),
+      prisma.company.findUniqueOrThrow({
+        where: { id: companyId },
+        select: { name: true, dateFormat: true },
+      }),
       clientId
         ? prisma.client.findFirst({ where: { id: clientId, companyId }, select: { name: true } })
         : Promise.resolve(null),
@@ -110,12 +117,15 @@ export class PublicInvoicePayService {
       typeId: 'invoice',
       displayNumber: document.displayNumber ?? null,
       status: document.status,
-      issueDate: asString(data.issueDate),
-      dueDate: asString(data.dueDate),
+      // Dates only, in the seller's configured format (same helper the PDF uses): the stored value is
+      // an ISO timestamp and a time must never reach the customer.
+      issueDate: formatLayoutDate(asString(data.issueDate), company.dateFormat),
+      dueDate: formatLayoutDate(asString(data.dueDate), company.dateFormat),
       currency,
       sellerName: company.name,
       clientName: client?.name ?? null,
       lines,
+      notes: asString(data.notes),
       subtotal: money(totals.netMinor),
       tax: money(totals.vatMinor),
       total: money(totals.grossMinor),

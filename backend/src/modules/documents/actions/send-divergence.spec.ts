@@ -11,7 +11,7 @@ import * as persistence from '../persistence';
 import { TransportRegistry } from '../transports/transport-registry';
 import { ActionRegistry } from './action-registry';
 import * as companyEmailTemplates from './company-email-templates';
-import { registerInvoiceActions } from './invoice-actions';
+import { registerInvoiceActions, resolveInvoiceTransport } from './invoice-actions';
 import { registerQuoteActions } from './quote-actions';
 import * as taxLoadAndResolve from '../tax/load-and-resolve';
 import * as b2gRouting from '../b2g-routing/b2g-routing';
@@ -257,37 +257,26 @@ describe('quote "send" and invoice "send" do not share a path', () => {
     );
   });
 
-  it('the invoice BLOCKS with a clear 501 when the company has configured NO transport — never a silent fallback to email', async () => {
+  it('the invoice resolves to the built-in "manual" transport when the company has configured NO transport — never to email', async () => {
     (companyTransport.getCompanyInvoiceTransportId as Mock).mockResolvedValue(null);
-    (persistence.findOwnedDocument as Mock).mockResolvedValue({
-      id: 'doc-1',
-      typeId: 'invoice',
-      status: 'draft',
-      data: documentData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
 
+    const emailTransport = { send: vi.fn() };
+    const manualTransport = { send: vi.fn() };
     const transportRegistry = new TransportRegistry();
-    // Registering "email" here on purpose: even when a transport DOES exist in the registry, an
-    // unconfigured company must still block — availability of a transport is not the same as a
-    // company having CHOSEN one.
-    transportRegistry.register('email', 'Email', { send: vi.fn() });
+    // Registering "email" here on purpose: an unconfigured company must NOT fall back to it. The
+    // default is the fork's share-link-only "manual" channel (transports/manual-transport.ts).
+    transportRegistry.register('email', 'Email', emailTransport);
+    transportRegistry.register('manual', 'Manual', manualTransport);
 
-    const registry = new ActionRegistry();
-    registerInvoiceActions(registry, { transportRegistry, queueDispatcher: { enqueueAction: vi.fn() } });
+    const resolved = await resolveInvoiceTransport(
+      transportRegistry,
+      'company-1',
+      '2026-01-01',
+      undefined,
+      documentData as Record<string, unknown>,
+    );
 
-    const handler = registry.resolve('invoice', 'send');
-    const action = handler!({
-      companyId: 'company-1',
-      typeId: 'invoice',
-      documentId: 'doc-1',
-      data: documentData,
-      params: {},
-    });
-
-    await expect(action).rejects.toBeInstanceOf(NotImplementedException);
-    await expect(action).rejects.toThrow(/no transport is configured/i);
+    expect(resolved.transportId).toBe('manual');
     expect(persistence.upsertDocument).not.toHaveBeenCalled();
   });
 

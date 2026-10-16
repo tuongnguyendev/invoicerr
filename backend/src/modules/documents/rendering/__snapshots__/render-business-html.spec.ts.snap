@@ -1,0 +1,107 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`invoice layout (US sample) > matches the pinned layout (a deliberate diff only) 1`] = `
+"
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 12px; line-height: 1.4; color: #222; background: white; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .top { display: flex; justify-content: space-between; gap: 24px; padding-bottom: 14px; border-bottom: 2px solid #007bff; }
+    .seller { flex: 1 1 auto; }
+    .logo { display: block; max-height: 56px; max-width: 220px; margin-bottom: 8px; }
+    .seller-name { font-size: 16px; font-weight: bold; margin-bottom: 2px; }
+    .party-name { font-size: 13px; font-weight: bold; margin-bottom: 1px; }
+    .party-line { color: #555; }
+    .docinfo { text-align: right; flex: 0 0 auto; }
+    .doc-title { font-size: 24px; font-weight: bold; color: #007bff; line-height: 1.1; }
+    .doc-number { font-size: 14px; margin-top: 2px; }
+    .doc-atcud { font-size: 11px; color: #555; font-family: monospace; }
+    .doc-meta { margin-top: 8px; color: #333; }
+    .doc-meta .k { color: #777; margin-right: 6px; }
+    .section-label { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #007bff; margin-bottom: 3px; }
+    .bill-to { margin-top: 14px; }
+    .refs { margin-top: 10px; font-size: 11px; color: #555; }
+    table.lines { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    table.lines th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: #555; padding: 5px 6px; border-bottom: 1.5px solid #bbb; }
+    table.lines td { padding: 6px; border-bottom: 1px solid #e6e6e6; vertical-align: top; }
+    table.lines .left { text-align: left; }
+    table.lines .num { text-align: right; white-space: nowrap; }
+    table.lines .desc { white-space: pre-line; word-break: break-word; }
+    table.lines tr { page-break-inside: avoid; }
+    .totals { width: 55%; margin: 10px 0 0 auto; page-break-inside: avoid; }
+    .totals-row { display: flex; justify-content: space-between; gap: 24px; padding: 3px 0; font-size: 12px; }
+    .totals-row.summary { font-weight: bold; font-size: 13px; border-top: 1.5px solid #333; margin-top: 3px; padding-top: 5px; }
+    .totals-amount { text-align: right; white-space: nowrap; }
+    .totals-row.totals-converted { color: #555; font-style: italic; }
+    .totals-row.totals-converted-rate { justify-content: flex-end; }
+    .totals-note { font-size: 10px; color: #777; }
+    .option-group { margin-top: 18px; }
+    .option-group-heading { font-weight: bold; font-size: 13px; }
+    .accepted-badge { font-weight: normal; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 8px; }
+    .notes { margin-top: 16px; page-break-inside: avoid; }
+    .notes-body { white-space: pre-wrap; word-break: break-word; }
+    .payment { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-top: 16px; padding: 10px; background: #f7f7f7; border-radius: 4px; page-break-inside: avoid; }
+    .payment-method-item { margin-top: 4px; }
+    .payment-method-label { font-weight: bold; }
+    .payment-method-line { font-size: 11px; color: #555; }
+    .payment-method-link { font-size: 11px; color: #1a5fb4; word-break: break-all; }
+    .payment-qr-section { text-align: center; flex: 0 0 auto; }
+    .payment-qr-label { font-size: 10px; color: #555; }
+    .legal-mentions { margin-top: 16px; padding-top: 8px; border-top: 1px solid #ddd; }
+    .legal-mention-item { font-size: 10px; color: #555; margin-bottom: 3px; }
+    .custom-fields-section { margin-top: 14px; padding-top: 8px; border-top: 1px solid #ddd; }
+    .custom-field-item { display: flex; justify-content: space-between; gap: 16px; padding: 2px 0; }
+    .custom-field-label { color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top">
+      <div class="seller">
+        
+        <div class="seller-name">TechFaGo LLC</div><div class="party-line">1021 E Lincolnway</div><div class="party-line">Cheyenne, WY 82001, United States</div><div class="party-line">EIN: 12-3456789</div><div class="party-line">billing@techfago.example</div>
+      </div>
+      <div class="docinfo">
+        <div class="doc-title">Invoice</div>
+        <div class="doc-number">INV-2026-0007</div>
+        
+        <div class="doc-meta"><div><span class="k">Date</span> 10/15/2026</div><div><span class="k">Due date</span> 10/30/2026</div><div><span class="k">Status</span> sent</div></div>
+      </div>
+    </div>
+
+    <div class="bill-to">
+      <div class="section-label">Bill to</div>
+      <div class="party-name">PaniTech Academy</div><div class="party-line">12 Academy Road</div><div class="party-line">Hanoi, Vietnam</div><div class="party-line">accounts@panitech.example</div>
+    </div>
+    <div class="refs"><div>Ref: Quote Q-2026-0001</div></div>
+    <table class="lines"><thead><tr><th class="left">Description</th><th class="num">Qty</th><th class="num">Unit price (USD)</th><th class="num">Amount (USD)</th></tr></thead><tbody><tr><td class="left desc">Website audit</td><td class="num">1</td><td class="num">50.00</td><td class="num">50.00</td></tr><tr><td class="left desc">Hosting setup</td><td class="num">1</td><td class="num">40.00</td><td class="num">40.00</td></tr><tr><td class="left desc">Training session</td><td class="num">2</td><td class="num">20.00</td><td class="num">40.00</td></tr><tr><td class="left desc">Support hours</td><td class="num">2</td><td class="num">10.00</td><td class="num">20.00</td></tr><tr><td class="left desc">Domain registration</td><td class="num">1</td><td class="num">40.00</td><td class="num">40.00</td></tr><tr><td class="left desc">Goodwill gesture</td><td class="num">1</td><td class="num">0.00</td><td class="num">0.00</td></tr></tbody></table>
+    <div class="totals"><div class="totals-row summary"><span>Total</span><span class="totals-amount">190.00 USD</span></div></div>
+
+    <div class="notes">
+      <div class="section-label">Notes</div>
+      <div class="notes-body">Thank you for your business.
+Please pay within 15 days.
+&lt;b&gt;not markup&lt;/b&gt;</div>
+    </div>
+
+    <div class="payment">
+      <div class="payment-main">
+        <div class="section-label">Payment methods</div>
+        <div class="payment-method-item">
+          <div class="payment-method-label">Stripe</div>
+          <div class="payment-method-line">Pay by card</div>
+          <div class="payment-method-link">https://pay.example/inv-1</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
+"
+`;

@@ -2306,8 +2306,8 @@
         },
         "invoiceTransportId": {
           "label": "Invoice sending method",
-          "placeholder": "Not configured",
-          "description": "How an invoice is delivered once you send it. Choose from the transports registered on this instance; leave unconfigured and sending will block with a clear message."
+          "placeholder": "Share link only (default)",
+          "description": "How an invoice is delivered once you send it. \"Share link only\" (recommended, and the default when nothing is chosen) sends nothing: you share the customer pay link yourself. Choose another channel from the transports registered on this instance to have the invoice delivered for you."
         },
         "referenceCurrency": {
           "label": "Reference currency",
@@ -4395,6 +4395,7 @@
     "issued": "Issued",
     "due": "Due",
     "linesCaption": "Invoice lines",
+    "notes": "Notes",
     "columns": {
       "description": "Description",
       "quantity": "Qty",

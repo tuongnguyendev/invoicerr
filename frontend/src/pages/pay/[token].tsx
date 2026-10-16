@@ -183,6 +183,16 @@ export default function PublicPayPage() {
             </Table>
           </div>
 
+          {invoice.notes && (
+            <div>
+              <h2 className="text-muted-foreground text-sm">{t("publicPay.notes")}</h2>
+              {/* Rendered as TEXT (React escapes it); whitespace-pre-line keeps the author's line breaks. */}
+              <p className="whitespace-pre-line text-sm" data-cy="pay-notes">
+                {invoice.notes}
+              </p>
+            </div>
+          )}
+
           <dl className="ms-auto w-full max-w-xs space-y-1 text-sm">
             <div className="flex justify-between gap-4">
               <dt className="text-muted-foreground">{t("publicPay.subtotal")}</dt>

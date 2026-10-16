@@ -1,56 +1,29 @@
 import { DocumentTypeDescriptor, DocumentFieldDescriptor } from '../descriptors/types';
 import { numberingDisplayState } from '../numbering/display-state';
-import { decimalsFor, fromMinor } from '@/utils/financial';
+import { decimalsFor } from '@/utils/financial';
 import type { PaymentMethodPresentation } from '../payment-methods/types';
 import type { DocumentTotals } from '../totals/compute-totals';
 import { fontFaceCssFor, fontStackFor } from './branding/font-catalog';
 import { pdfChromeStrings, PdfChromeStrings } from './language/pdf-chrome-strings';
 import { DEFAULT_RENDER_LANGUAGE, RenderLanguage } from './language/supported-languages';
 
-/** The EXACT pre-branding values (chantier B, 2026-09-15) — what every render used unconditionally
- *  before `RenderDocumentHtmlInput.branding` existed, and what a company with no branding set still
- *  gets, verbatim: see `renderDocumentHtml`'s own header for the byte-for-byte guarantee this pair
- *  exists to uphold. Never read anywhere else — `fontStackFor`/an explicit `accentColor` are the only
- *  two ways to override either. */
-const DEFAULT_ACCENT_COLOR = '#007bff';
-const DEFAULT_BODY_FONT_STACK =
-  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+import {
+  renderBusinessDocumentHtml,
+  usesBusinessLayout,
+  type BusinessLayoutContext,
+} from './render-business-html';
+import {
+  DEFAULT_ACCENT_COLOR,
+  DEFAULT_BODY_FONT_STACK,
+  escapeHtmlNode,
+  escapeHtmlSafe,
+  isEmptyFieldValue,
+  renderTotalsRows,
+  renderVatNationalCurrencyRows,
+} from './render-html-shared';
 
-/**
- * Escapes HTML special characters — applied to ALL values from data to prevent injection.
- */
-function escapeHtml(value: string): string {
-  const div = document.createElement('div');
-  div.textContent = value;
-  return div.innerHTML;
-}
-
-// Fallback for Node.js environment where document doesn't exist
-export function escapeHtmlNode(value: string): string {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-function escapeHtmlSafe(value: string): string {
-  try {
-    return escapeHtml(value);
-  } catch {
-    return escapeHtmlNode(value);
-  }
-}
-
-/** The SAME emptiness test `hideWhenEmpty`'s top-level check (further below) and
- *  `validate.ts#isMissing` both already use — undefined/null/'' only, so a legitimately falsy value
- *  (0, false) is never treated as empty. Named and exported from neither: this is the one place an
- *  'array' row needs it too (see the 'array' case's own subfield-column filter, just below), so it
- *  is a local helper shared by both call sites in THIS file rather than duplicated inline twice. */
-function isEmptyFieldValue(value: unknown): boolean {
-  return value === undefined || value === null || value === '';
-}
+// Kept importable from here: `payment-methods/email-block.ts` and `render-pdf.ts` take it from this module.
+export { escapeHtmlNode };
 
 /**
  * Render a single field's value as HTML, by kind. Returns the HTML representation of the value,
@@ -195,114 +168,6 @@ function renderFieldValue(
       return `[unrendered field kind &quot;${escapeHtmlSafe(field.kind)}&quot; for &quot;${escapeHtmlSafe(field.key)}&quot;]`;
     }
   }
-}
-
-/**
- * The net/VAT-breakdown/gross/warnings ROWS shared by the ordinary single totals section AND, since
- * issue #373 ("quotes with options"), each per-option group's own mini totals block below - extracted
- * so the two never drift apart on rounding, VAT-aggregation, or the `showVat` rule (see
- * `DocumentTotals.showVat`'s own header, compute-totals.ts). Returns the INNER rows only, not the
- * outer `.totals-section`/label wrapper - callers differ on that (the global section gets its own
- * heading; a group gets one heading for the whole option, not a second "Totals" label repeated inside
- * it), so wrapping stays each caller's own job.
- */
-function renderTotalsRows(
-  totals: DocumentTotals,
-  strings: PdfChromeStrings,
-  // Issue #373 follow-up ("no meaningless common total") - true only for a REAL option's own block,
-  // and only when a common group exists alongside it (`renderOptionGroupsField`'s own call site):
-  // swaps the gross row's label for `strings.totalIncludingCommonLines` so a reader can tell this
-  // figure already folds the common lines in, without the common group printing a total of its own
-  // to point back at. Never true for the ordinary single-total section, or for a common group's own
-  // (line-only) block, which no longer calls this function for its totals at all.
-  totalLabelIncludesCommon = false,
-): string {
-  const currency = totals.currency || '—';
-  const decimals = decimalsFor(currency);
-  const showVat = totals.showVat !== false;
-
-  let html = '';
-  if (showVat) {
-    const netDisplay = `${fromMinor(totals.netMinor, currency).toFixed(decimals)} ${currency}`;
-    html += `
-      <div class="totals-row">
-        <span>${escapeHtmlSafe(strings.net)}</span>
-        <span class="totals-amount">${escapeHtmlSafe(netDisplay)}</span>
-      </div>
-`;
-    for (const entry of totals.vatBreakdown) {
-      const baseDisplay = `${fromMinor(entry.baseMinor, currency).toFixed(decimals)} ${currency}`;
-      const vatDisplay = `${fromMinor(entry.vatMinor, currency).toFixed(decimals)} ${currency}`;
-      html += `
-      <div class="totals-row">
-        <span>${escapeHtmlSafe(strings.vatOn(entry.ratePercent.toString(), baseDisplay))}</span>
-        <span class="totals-amount">${escapeHtmlSafe(vatDisplay)}</span>
-      </div>
-`;
-    }
-  }
-
-  const grossDisplay = `${fromMinor(totals.grossMinor, currency).toFixed(decimals)} ${currency}`;
-  const grossLabel = totalLabelIncludesCommon ? strings.totalIncludingCommonLines : strings.total;
-  html += `
-      <div class="totals-row summary">
-        <span>${escapeHtmlSafe(grossLabel)}</span>
-        <span class="totals-amount">${escapeHtmlSafe(grossDisplay)}</span>
-      </div>
-`;
-
-  if (totals.warnings.length > 0) {
-    html += `
-      <div class="warnings-section">
-`;
-    for (const warning of totals.warnings) {
-      html += `        <div class="warning-item">${escapeHtmlSafe(warning)}</div>\n`;
-    }
-    html += `      </div>\n`;
-  }
-
-  return html;
-}
-
-/**
- * Issue #517: the extra rows printed under the ordinary totals section when the seller's own
- * country required its VAT (and, for Italy, its taxable amount too) converted into the country's own
- * national currency (`RenderDocumentHtmlInput.vatNationalCurrency`'s own header). A tiny, separate
- * function rather than folded into `renderTotalsRows` above: that one is SHARED with each per-option
- * group's own mini totals block, and this fact is a document-level one, never a per-option one (see
- * that input's own header). Keeping this separate is what makes it trivially impossible to print
- * this once per option by accident.
- */
-function renderVatNationalCurrencyRows(
-  vatNationalCurrency: NonNullable<RenderDocumentHtmlInput['vatNationalCurrency']>,
-  strings: PdfChromeStrings,
-): string {
-  const { currency, vatMinor, taxableMinor, rate, rateAsOf } = vatNationalCurrency;
-  const decimals = decimalsFor(currency);
-  let html = '';
-
-  if (taxableMinor !== null) {
-    const taxableDisplay = `${fromMinor(taxableMinor, currency).toFixed(decimals)} ${currency}`;
-    html += `
-      <div class="totals-row totals-converted">
-        <span>${escapeHtmlSafe(strings.taxableInNationalCurrency(currency))}</span>
-        <span class="totals-amount">${escapeHtmlSafe(taxableDisplay)}</span>
-      </div>
-`;
-  }
-
-  const vatDisplay = `${fromMinor(vatMinor, currency).toFixed(decimals)} ${currency}`;
-  html += `
-      <div class="totals-row totals-converted">
-        <span>${escapeHtmlSafe(strings.vatInNationalCurrency(currency))}</span>
-        <span class="totals-amount">${escapeHtmlSafe(vatDisplay)}</span>
-      </div>
-      <div class="totals-row totals-converted-rate">
-        <span class="totals-note">${escapeHtmlSafe(strings.exchangeRate(String(rate), rateAsOf))}</span>
-      </div>
-`;
-
-  return html;
 }
 
 /**
@@ -581,6 +446,15 @@ export interface RenderDocumentHtmlInput {
    * `logoDataUri` prints no logo block at all, not an empty frame — the same "nothing, not an empty
    * frame" discipline `legalMentions`/`paymentQr` above already hold for their own absent case.
    */
+  /**
+   * The extra facts the dedicated invoice/quote/credit-note layout (`render-business-html.ts`) prints
+   * and the generic descriptor loop cannot know: the parties' addresses and identifiers, the company's
+   * date format, the NUMBER of the document an invoice was raised from, the amount already paid. Only
+   * `render-instance-pdf.ts` fills it. Optional and every part of it degrades: absent, the layout
+   * falls back to `company` for the seller and to the client reference label for the buyer's name.
+   * Ignored by every other document type (the generic renderer never reads it).
+   */
+  businessLayout?: BusinessLayoutContext;
   branding?: {
     /** Hex `#rrggbb`, validated by `company/branding/branding.service.ts` before it ever reaches
      *  here — this function trusts it verbatim and applies it to the four rules that used to
@@ -600,6 +474,13 @@ export interface RenderDocumentHtmlInput {
  * Never relies on external CSS or fonts — everything is inline.
  */
 export function renderDocumentHtml(input: RenderDocumentHtmlInput): string {
+  // Invoice, quote and credit note get a dedicated, compact layout instead of one card per descriptor
+  // field (which spilled a typical invoice onto two pages and printed raw ISO timestamps and empty
+  // cards). Every other type keeps the generic renderer below, byte for byte.
+  if (usesBusinessLayout(input.descriptor.id)) {
+    return renderBusinessDocumentHtml(input, { renderFieldValue });
+  }
+
   const { descriptor, instance, company, referenceLabels } = input;
   const strings = pdfChromeStrings(input.language ?? DEFAULT_RENDER_LANGUAGE);
 

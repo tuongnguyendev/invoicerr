@@ -24,6 +24,7 @@ import { resolveInvoiceCrossBorderTax } from './tax/resolve-invoice-tax';
 import { computeDocumentTotals } from './totals/compute-totals';
 import * as companyTransport from './transports/company-transport';
 import { TransportRegistry } from './transports/transport-registry';
+import { buildManualTransport } from './transports/manual-transport';
 
 vi.mock('./persistence');
 vi.mock('./transports/company-transport');
@@ -1027,26 +1028,42 @@ describe('DocumentsService — the invoice type, the SECOND descriptor-only type
   });
 
   describe('"send" — reads the company\'s OWN transport configuration, not the quote\'s email mechanism', () => {
-    it('blocks with a 501 when the company has not configured a transport', async () => {
+    it('an unconfigured company defaults to the built-in "manual" transport: the replay delivers with no I/O and marks the invoice "sent"', async () => {
+      // Fork decision (transports/manual-transport.ts): nothing configured is NOT a block any more.
       (companyTransport.getCompanyInvoiceTransportId as Mock).mockResolvedValue(null);
+      const transportRegistry = new TransportRegistry();
+      const emailTransport = { send: vi.fn() };
+      transportRegistry.register('email', 'Email', emailTransport);
+      transportRegistry.register('manual', 'Share link only', buildManualTransport());
+
       (persistence.findOwnedDocument as Mock).mockResolvedValue({
         id: 'doc-1',
         typeId: 'invoice',
-        status: 'draft',
+        status: 'sending',
+        data: validInvoiceData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        number: 1,
+        displayNumber: 'INV-2026-0001',
+      });
+      (persistence.updateDocumentStatus as Mock).mockResolvedValue({
+        id: 'doc-1',
+        typeId: 'invoice',
+        status: 'sent',
         data: validInvoiceData,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
-      const { service } = buildService();
-      const action = service.runAction('company-1', 'invoice', 'send', {
+      const { service } = buildService(transportRegistry);
+      const result = await service.runAction('company-1', 'invoice', 'send', {
         documentId: 'doc-1',
         data: validInvoiceData,
       });
 
-      await expect(action).rejects.toBeInstanceOf(NotImplementedException);
-      await expect(action).rejects.toThrow(/no transport is configured/i);
-      expect(persistence.upsertDocument).not.toHaveBeenCalled();
+      expect(result.document).toMatchObject({ id: 'doc-1', status: 'sent' });
+      expect(result.message).toMatch(/nothing was emailed/);
+      expect(emailTransport.send).not.toHaveBeenCalled();
     });
 
     it('phase 1: with a transport configured, persists "sending" and ENQUEUES — never calls the transport synchronously', async () => {

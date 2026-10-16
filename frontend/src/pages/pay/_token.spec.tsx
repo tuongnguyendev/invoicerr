@@ -28,6 +28,7 @@ const INVOICE = {
   sellerName: "Acme SAS",
   clientName: "Globex",
   lines: [{ description: "Consulting", quantity: 2, unitPrice: 50, lineTotal: 100 }],
+  notes: "Thanks!\nNet 15 days. <b>x</b>",
   subtotal: 100,
   tax: 20,
   total: 120,
@@ -80,6 +81,24 @@ describe("<PublicPayPage>", () => {
     expect(screen.getByTestId("pay-download-pdf").getAttribute("href")).toContain(
       "/api/public/documents/tok/pdf",
     )
+  })
+
+  it("shows the notes below the lines, as text with its line breaks", async () => {
+    installFetch(INVOICE)
+    renderPage()
+
+    const notes = await screen.findByTestId("pay-notes")
+    expect(notes.textContent).toBe("Thanks!\nNet 15 days. <b>x</b>")
+    expect(notes.querySelector("b")).toBeNull()
+    expect(notes.className).toContain("whitespace-pre-line")
+  })
+
+  it("renders no notes block when the invoice has none", async () => {
+    installFetch({ ...INVOICE, notes: null })
+    renderPage()
+
+    await screen.findByRole("heading", { level: 1 })
+    expect(screen.queryByTestId("pay-notes")).toBeNull()
   })
 
   it("hides the pay button when online payment is unavailable", async () => {

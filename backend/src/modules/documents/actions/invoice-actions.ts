@@ -31,6 +31,7 @@ import { resolveInvoiceCrossBorderTaxForCompany } from '../tax/load-and-resolve'
 import { computeDocumentTotals } from '../totals/compute-totals';
 import { ActiveChannelMandate, activeChannelMandateForOperation } from '../transports/channel-policy/mandate';
 import { getCompanyInvoiceTransportId } from '../transports/company-transport';
+import { DEFAULT_INVOICE_TRANSPORT_ID } from '../transports/manual-transport';
 import {
   DocumentTransport,
   TransportRegistry,
@@ -395,26 +396,22 @@ export async function resolveInvoiceTransport(
     );
   }
 
-  if (!transportId) {
-    logger.warn('Invoice "send" blocked: no transport configured for this company', {
-      category: 'documents',
-      details: { companyId },
-    });
-    throw new NotImplementedException(
-      'No transport is configured for this company to send an invoice. ' +
-        'Configure one in company settings before sending — there is no default channel.',
-    );
-  }
+  // Fork decision: a company that never chose a transport sends via "manual" (share link only, no
+  // outbound I/O) instead of being blocked. Upstream deliberately had "no default channel"; this
+  // fork is share-link-first. Applied AFTER the mandate check above on purpose (a mandated country
+  // still blocks an unconfigured company), and only for NOTHING configured: an explicit but unknown
+  // id still errors below, never silently downgraded.
+  const effectiveTransportId = transportId ?? DEFAULT_INVOICE_TRANSPORT_ID;
 
   try {
     // No `formatOverride` on this path — neither the seller-country mandate nor the company's own
     // free choice carries a per-invoice format decision the way a B2G rule does (see
     // `ResolvedInvoiceTransport`'s own header).
-    return { transport: transportRegistry.resolve(transportId), transportId };
+    return { transport: transportRegistry.resolve(effectiveTransportId), transportId: effectiveTransportId };
   } catch (error) {
     if (error instanceof UnknownTransportError) {
       throw new NotImplementedException(
-        `The transport "${transportId}" configured for this company is not available. ` +
+        `The transport "${effectiveTransportId}" configured for this company is not available. ` +
           'Choose a different one in company settings before sending.',
       );
     }

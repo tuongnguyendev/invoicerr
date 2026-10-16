@@ -27,6 +27,7 @@ import { findLinkedCreditNote, LinkedCreditNote, linkedCreditNoteTotals } from '
 import { RenderLanguage } from './language/supported-languages';
 import { resolveRecipientLanguage } from './language/resolve-recipient-language';
 import { logoDataUriFor } from './branding/logo-storage';
+import { businessLayoutContextFor } from './business-layout-context';
 import { renderDocumentHtml, RenderDocumentHtmlInput } from './render-html';
 import { renderPdf } from './render-pdf';
 import { buildEpcPayload, renderSepaQrDataUri } from './sepa-qr';
@@ -370,9 +371,15 @@ export async function renderDocumentInstance(
     select: {
       name: true,
       address: true,
+      addressLine2: true,
       city: true,
       postalCode: true,
+      state: true,
       country: true,
+      countryCode: true,
+      email: true,
+      phone: true,
+      dateFormat: true,
       iban: true,
       language: true,
       exemptVat: true,
@@ -481,6 +488,21 @@ export async function renderDocumentInstance(
   // uncaught, this would otherwise surface as a bare 500 to whoever downloads or is sent this PDF —
   // exactly the "silent break" this named error type exists to prevent from happening TWICE (once as
   // a printed `{token}`, once as an unexplained crash).
+  // A linked credit note names no client of its own: its buyer is the corrected invoice's.
+  const layoutClientId =
+    clientIdFromData(descriptor, instanceData) ??
+    (typeof linkedCreditNote?.pricingData.client === 'string'
+      ? linkedCreditNote.pricingData.client
+      : undefined);
+  const businessLayout = await businessLayoutContextFor(
+    companyId,
+    descriptor.id,
+    company,
+    instanceData,
+    instance.id,
+    layoutClientId,
+  );
+
   let legalMentions: ResolvedInvoiceNote[];
   try {
     legalMentions = legalMentionsFor(descriptor, company.country, instanceData);
@@ -544,6 +566,7 @@ export async function renderDocumentInstance(
     paymentQr: await sepaPaymentQrFor(descriptor, company, totals, instanceData, instance.displayNumber),
     paymentMethods,
     customFields,
+    businessLayout,
     branding: {
       accentColor: company.brandingAccentColor,
       font: company.brandingFont,

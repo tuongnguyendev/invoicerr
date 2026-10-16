@@ -26,6 +26,7 @@ export interface PublicInvoiceSummary {
   sellerName: string
   clientName: string | null
   lines: PublicInvoiceLine[]
+  notes: string | null
   subtotal: number
   tax: number
   total: number
