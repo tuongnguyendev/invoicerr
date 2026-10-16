@@ -12,6 +12,7 @@ import {
   deriveTextFromHtml,
   describeDocumentEmailVocabulary,
   describeSendablePlaceholders,
+  dropLinesReferencing,
   GENERIC_FALLBACK_EMAIL_TEMPLATE,
   renderEmailTemplate,
   resolveEmailTemplate,
@@ -714,5 +715,63 @@ describe("the system families' vocabularies — built by a function, never a dup
       appUrl: 'https://app.test',
       otpCode: '1234-5678',
     });
+  });
+});
+
+describe('{payUrl} - the pay link of "Email to client"', () => {
+  const totals: DocumentTotals = {
+    currency: 'USD',
+    lines: [],
+    netMinor: 10000,
+    vatMinor: 0,
+    grossMinor: 10000,
+    vatBreakdown: [],
+    warnings: [],
+  };
+  const input = (descriptor: DocumentTypeDescriptor, payUrl?: string) => ({
+    descriptor,
+    displayNumber: 'INV-1',
+    companyName: 'Acme',
+    totals,
+    referenceLabels: {},
+    payUrl,
+  });
+
+  it('is a known part of every type that declares "email-client", filled when a link exists', () => {
+    const parts = buildEmailTemplateParts(input(buildInvoiceDescriptor(), 'https://app.test/pay/abc'));
+    expect(parts.payUrl).toBe('https://app.test/pay/abc');
+  });
+
+  it('is a known EMPTY part without a link, so it never renders as a literal "{payUrl}"', () => {
+    const parts = buildEmailTemplateParts(input(buildInvoiceDescriptor()));
+    expect(parts.payUrl).toBe('');
+    expect(renderEmailTemplate({ subject: 's', body: 'x {payUrl}' }, parts).warnings).toEqual([]);
+  });
+
+  it("is absent for a type without the action, keeping the engine's unknown-placeholder warning", () => {
+    const parts = buildEmailTemplateParts(input(buildQuoteDescriptor(), 'https://app.test/pay/abc'));
+    expect(Object.hasOwn(parts, 'payUrl')).toBe(false);
+    expect(renderEmailTemplate({ subject: 's', body: '{payUrl}' }, parts).warnings).toHaveLength(1);
+  });
+
+  it('is advertised to the Settings -> Templates editor (and accepted on save) for the invoice only', () => {
+    const invoice = { descriptor: buildInvoiceDescriptor(), companyName: 'Acme' };
+    expect(describeDocumentEmailVocabulary(invoice)).toHaveProperty('payUrl');
+    expect(describeSendablePlaceholders(invoice)).toHaveProperty('payUrl');
+    expect(
+      describeDocumentEmailVocabulary({ descriptor: buildQuoteDescriptor(), companyName: 'Acme' }),
+    ).not.toHaveProperty('payUrl');
+  });
+
+  it('dropLinesReferencing removes the whole sentence and collapses the blank line it leaves', () => {
+    const template = { subject: 'S', body: 'Hi,\n\nPay here: {payUrl}\n\nThanks' };
+    expect(dropLinesReferencing(template, 'payUrl')).toEqual({ subject: 'S', body: 'Hi,\n\nThanks' });
+    expect(dropLinesReferencing({ subject: 'S', body: 'no link' }, 'payUrl').body).toBe('no link');
+  });
+
+  it('the shipped English invoice default carries the pay link sentence', () => {
+    const template = resolveEmailTemplate(buildInvoiceDescriptor(), {}, 'en');
+    expect(template.body).toContain('You can view and pay it online here: {payUrl}');
+    expect(template.subject).toBe('{typeLabel} {displayNumber} from {companyName}');
   });
 });

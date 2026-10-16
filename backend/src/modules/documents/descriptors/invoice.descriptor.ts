@@ -473,9 +473,12 @@ export function buildInvoiceDescriptor(): DocumentTypeDescriptor {
       subject: '{typeLabel} {displayNumber} from {companyName}',
       body:
         'Dear {recipientName},\n\n' +
-        'Please find attached {typeLabel} {displayNumber} from {companyName}, for a total of ' +
-        '{totalGross}.\n\n' +
-        'Best regards,\n{companyName}',
+        'Please find attached {typeLabel} {displayNumber} for {totalGross}.\n\n' +
+        // `{payUrl}` is filled by the "Email to client" action only; every other delivery of this
+        // template (the "email" transport) drops this whole line instead of printing an empty link
+        // (email-template.ts#dropLinesReferencing).
+        'You can view and pay it online here: {payUrl}\n\n' +
+        'Thank you,\n{companyName}',
     },
     // Per-recipient document language — see types.ts's own comment on `emailTranslations`, and
     // standard-email-translations.ts's own header on why this is shared, word-for-word, with
@@ -738,6 +741,21 @@ export function buildInvoiceDescriptor(): DocumentTypeDescriptor {
         // (numbering/, `numbering.onEnterStatus: 'sending'` above) and has "no legal existence" to
         // hand a stranger a link to yet.
         availableWhen: ['sending', 'sent', 'send_failed'],
+      },
+      {
+        id: 'email-client',
+        label: 'Email to client',
+        // Declared for the same reason "share-link" above is: the country policy and the status
+        // lifecycle get an opinion, but it is NOT an `ActionRegistry` handler. It never changes the
+        // invoice's status or number (so no `transitions`) and never goes through the transport /
+        // async-send pipeline: email-client/email-client.service.ts mints a fresh pay link and emails
+        // the client's primary contact through `send-document-email.ts`, behind
+        // "POST /documents/:id/email-client", running the same two hand-run gates as share-link
+        // (country policy 403, status 409). This is what makes it usable with the default "manual"
+        // transport, where "send" itself emails nobody. Numbered invoices only: "sending" is
+        // excluded (the worker is mid-flight) and so is "validated" (not issued to anyone yet).
+        // Also the marker `email-template.ts` reads to offer the `{payUrl}` placeholder.
+        availableWhen: ['sent', 'send_failed'],
       },
       {
         id: 'delete',

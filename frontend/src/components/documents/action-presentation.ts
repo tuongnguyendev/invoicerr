@@ -186,6 +186,8 @@ export function createBlockedReasons(
  * the generic action runner (document-list.tsx's row cluster spells out why for each):
  *  - "download-xml": a plain GET per syntax (`documents.service.ts#downloadDocumentFormat`);
  *  - "share-link": REST resources of their own (share-links/), behind share-link-dialog.tsx;
+ *  - "email-client": one REST route (emails the client the PDF and a pay link), behind
+ *    email-client-dialog.tsx;
  *  - "duplicate": ALSO the gate for offering a RECURRENCE (create-recurrence-dialog.tsx) — a
  *    plugin's own type gets it for free the moment it registers "duplicate" too; "then send" inside
  *    that dialog is offered only to a type that ALSO declares "send", never assumed.
@@ -194,10 +196,14 @@ export function createBlockedReasons(
 export function extraActionGates(descriptor: DocumentTypeDescriptor, status: string) {
   const downloadXml = descriptor.actions.find((action) => action.id === "download-xml")
   const shareLink = descriptor.actions.find((action) => action.id === "share-link")
+  const emailClient = descriptor.actions.find((action) => action.id === "email-client")
   const duplicate = descriptor.actions.find((action) => action.id === "duplicate")
   return {
     downloadXml: downloadXml && isActionAvailable(downloadXml, status) ? downloadXml : undefined,
     shareLink: shareLink && isActionAvailable(shareLink, status) ? shareLink : undefined,
+    // "email-client": a REST route of its own (email-client/email-client.service.ts), behind
+    // email-client-dialog.tsx, never a runAction POST.
+    emailClient: emailClient && isActionAvailable(emailClient, status) ? emailClient : undefined,
     recurrence: !!duplicate && isActionAvailable(duplicate, status),
     offerThenSend: descriptor.actions.some((action) => action.id === "send"),
   }

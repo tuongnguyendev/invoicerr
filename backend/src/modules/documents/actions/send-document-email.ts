@@ -12,7 +12,13 @@ import { NullSigningCredentials, SigningCredentialsPort } from '../signing/signi
 import { signRenderedPdfIfConfigured } from '../signing/sign-instance-pdf';
 import { DocumentInstanceResult } from './action-registry';
 import { getCompanyDocumentEmailTemplates } from './company-email-templates';
-import { buildEmailTemplateParts, renderEmailTemplate, resolveEmailTemplate } from './email-template';
+import {
+  buildEmailTemplateParts,
+  dropLinesReferencing,
+  renderEmailTemplate,
+  resolveEmailTemplate,
+  typeOffersPayUrl,
+} from './email-template';
 
 export interface SendDocumentEmailDeps {
   mailService: MailService;
@@ -40,6 +46,10 @@ export interface SendDocumentEmailInput {
   recipient: string;
   /** Plain data (not an i18n key), the same convention as DocumentTypeDescriptor.label — e.g. "Quote". */
   label: string;
+  /** Absolute pay link for the `{payUrl}` placeholder — only the "Email to client" action supplies one
+   *  (`email-client/email-client.service.ts`). Absent: a template line mentioning `{payUrl}` is dropped
+   *  rather than printed empty (`dropLinesReferencing`). */
+  payUrl?: string;
 }
 
 export interface SendDocumentEmailResult {
@@ -152,7 +162,13 @@ export async function sendDocumentInstanceEmail(
   // attaches was just rendered in (`rendering/render-instance-pdf.ts`'s own `recipientLanguageFor`),
   // never a second, independently-resolved value — the PDF and its covering email must never disagree
   // about which language they went out in.
-  const template = resolveEmailTemplate(descriptor, companyTemplates, rendered.language);
+  const resolvedTemplate = resolveEmailTemplate(descriptor, companyTemplates, rendered.language);
+  // A type that offers `{payUrl}` but is sent without a link (the "email" transport) loses the line
+  // that mentions it — see `SendDocumentEmailInput.payUrl`.
+  const template =
+    typeOffersPayUrl(descriptor) && !input.payUrl
+      ? dropLinesReferencing(resolvedTemplate, 'payUrl')
+      : resolvedTemplate;
   const parts = buildEmailTemplateParts({
     descriptor,
     displayNumber: document.displayNumber,
@@ -164,6 +180,7 @@ export async function sendDocumentInstanceEmail(
     // Same recipient language the template itself was just resolved for, two lines up - see
     // `buildEmailTemplateParts`'s own `language` header for why this is the ONE part it needs it for.
     language: rendered.language,
+    payUrl: input.payUrl,
   });
   const { subject, body: renderedBody, html: renderedHtml, warnings } = renderEmailTemplate(template, parts);
 

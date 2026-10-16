@@ -345,6 +345,8 @@ export function useDocumentForm({
       action.id !== "cancel" &&
       action.id !== "download-xml" &&
       action.id !== "share-link" &&
+      // "email-client": a REST route behind its own dialog (email-client-dialog.tsx), not a runAction.
+      action.id !== "email-client" &&
       action.id !== "accept-manually" &&
       isOfferedOnRecord(action, currentDisplayNumber) &&
       isActionAvailable(action, currentStatus),

@@ -1,4 +1,14 @@
-import { ArrowLeft, ChevronDown, Download, FileCode, FileDown, Link2, Repeat, UserCheck } from "lucide-react"
+import {
+  ArrowLeft,
+  ChevronDown,
+  Download,
+  FileCode,
+  FileDown,
+  Link2,
+  Mail,
+  Repeat,
+  UserCheck,
+} from "lucide-react"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router"
 import { useTranslation } from "react-i18next"
@@ -42,6 +52,7 @@ import {
   DocumentSettlementSection,
 } from "@/components/documents/document-settlement"
 import { DocumentStatusBadge } from "@/components/documents/document-status-badge"
+import { EmailClientDialog } from "@/components/documents/email-client-dialog"
 import { DocumentTaxWarningsSection } from "@/components/documents/document-tax-warnings"
 import { LtrValue } from "@/components/ui/ltr-value"
 import {
@@ -619,7 +630,7 @@ interface DocumentDetailActionsProps {
  * also carries the record's plain-GET and dialog-driven entries — PDF, normalized XML, share link,
  * recurrence — the exact set the list row offers, through the same shared helpers.
  */
-function DocumentDetailActions({
+export function DocumentDetailActions({
   descriptor,
   instance,
   state,
@@ -630,6 +641,7 @@ function DocumentDetailActions({
   const { t } = useTranslation()
   const [recurrenceOpen, setRecurrenceOpen] = useState(false)
   const [shareLinkOpen, setShareLinkOpen] = useState(false)
+  const [emailClientOpen, setEmailClientOpen] = useState(false)
   const [markAcceptedOpen, setMarkAcceptedOpen] = useState(false)
   const gates = extraActionGates(descriptor, instance.status)
   const customExtras = getDocumentCustomComponents(descriptor.id, "list-row-extra")
@@ -659,6 +671,32 @@ function DocumentDetailActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-56" data-cy="document-actions-menu-content">
+          {/* The two ways of getting an issued invoice to the customer come first, then a separator,
+              then everything else. */}
+          {gates.shareLink && (
+            <DropdownMenuItem
+              disabled={!!gates.shareLink.policyBlockedReason}
+              onSelect={() => setShareLinkOpen(true)}
+              data-cy="document-share-link-button"
+            >
+              <Link2 aria-hidden="true" />
+              {t("documents.list.shareLink")}
+            </DropdownMenuItem>
+          )}
+
+          {gates.emailClient && (
+            <DropdownMenuItem
+              disabled={!!gates.emailClient.policyBlockedReason}
+              onSelect={() => setEmailClientOpen(true)}
+              data-cy="document-email-client-button"
+            >
+              <Mail aria-hidden="true" />
+              {t("documents.list.emailClient")}
+            </DropdownMenuItem>
+          )}
+
+          {(gates.shareLink || gates.emailClient) && <DropdownMenuSeparator />}
+
           {secondary.map((action) => {
             const hint = transitionHint(t, descriptor, action, state.currentStatus)
             const blocked = action.policyBlockedReason
@@ -742,17 +780,6 @@ function DocumentDetailActions({
             </DropdownMenuSub>
           )}
 
-          {gates.shareLink && (
-            <DropdownMenuItem
-              disabled={!!gates.shareLink.policyBlockedReason}
-              onSelect={() => setShareLinkOpen(true)}
-              data-cy="document-share-link-button"
-            >
-              <Link2 aria-hidden="true" />
-              {t("documents.list.shareLink")}
-            </DropdownMenuItem>
-          )}
-
           {gates.recurrence && (
             <DropdownMenuItem onSelect={() => setRecurrenceOpen(true)} data-cy="document-recurrence-button">
               <Repeat aria-hidden="true" />
@@ -808,6 +835,16 @@ function DocumentDetailActions({
           documentId={instance.id}
           open={shareLinkOpen}
           onOpenChange={setShareLinkOpen}
+        />
+      )}
+
+      {gates.emailClient && emailClientOpen && (
+        <EmailClientDialog
+          typeId={descriptor.id}
+          documentId={instance.id}
+          clientId={typeof instance.data?.client === "string" ? instance.data.client : undefined}
+          open={emailClientOpen}
+          onOpenChange={setEmailClientOpen}
         />
       )}
 

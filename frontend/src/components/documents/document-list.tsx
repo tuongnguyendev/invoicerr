@@ -316,6 +316,8 @@ function DocumentRowActions({ descriptor, instance, onActionSuccess, children }:
         (action) =>
           action.id !== "download-xml" &&
           action.id !== "share-link" &&
+          // "email-client": a REST route behind its own dialog, offered on the detail page only.
+          action.id !== "email-client" &&
           action.id !== "cancel" &&
           // "accept-manually" (issue #421) - same reasoning `use-document-form.ts` spells out for the
           // detail page: it needs its own dedicated confirmation dialog (required note, an explicit

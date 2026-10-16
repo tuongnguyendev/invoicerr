@@ -44,7 +44,8 @@ import {
 } from './attachments/attachments.service';
 import { buildOriginalContentDisposition, DocumentsService } from './documents.service';
 import { parseDashboardQuery, RawDashboardQuery } from './dto/dashboard-query.dto';
-import { RunActionDto, UpdateDocumentEmailTemplateDto } from './dto/documents.dto';
+import { EmailClientDto, RunActionDto, UpdateDocumentEmailTemplateDto } from './dto/documents.dto';
+import { EmailClientService } from './email-client/email-client.service';
 import {
   DOCUMENT_LIST_DEFAULT_PAGE_SIZE,
   DOCUMENT_LIST_MAX_PAGE_SIZE,
@@ -117,6 +118,7 @@ export class DocumentsController {
     private readonly shareLinksService: ShareLinksService,
     private readonly eventsBridge: DocumentEventsBridge,
     private readonly attachmentsService: AttachmentsService,
+    private readonly emailClientService: EmailClientService,
   ) {}
 
   // Static segments ('types', 'transports', 'references/:entity/search', 'schedules') are declared
@@ -1238,6 +1240,34 @@ export class DocumentsController {
     @Query('typeId') typeId: string,
   ) {
     return this.shareLinksService.create(companyId, typeId, id);
+  }
+
+  @Post(':id/email-client')
+  @RequiresDocumentTypeScope('write')
+  @ApiOperation({
+    summary: 'Email a numbered document to its client',
+    description:
+      "Emails the client's primary contact (or the `recipient` in the body, validated) the document's PDF " +
+      'with a freshly minted customer pay link ({payUrl} in the email template). Never changes the ' +
+      "document's status or number and never goes through the transport / async-send pipeline: a " +
+      'mailer failure is answered here, synchronously. Two gates fire: country policy (403) and ' +
+      'status (409, only sent / send_failed documents).',
+  })
+  @ApiParam({ name: 'id', type: String })
+  @ApiQuery({ name: 'typeId', required: true, type: String })
+  @ApiResponse({ status: 201, description: 'Email sent' })
+  @ApiResponse({ status: 400, description: 'No recipient email on file, or an invalid override' })
+  @ApiResponse({ status: 404, description: 'Not found for this company/type, or type has no such action' })
+  @ApiResponse({ status: 403, description: "The active company's country document-action policy forbids it" })
+  @ApiResponse({ status: 409, description: "Not available for the record's current status" })
+  @ApiResponse({ status: 502, description: 'The mail server refused or failed to send' })
+  emailClient(
+    @ActiveCompany() companyId: string,
+    @Param('id') id: string,
+    @Query('typeId') typeId: string,
+    @Body() body?: EmailClientDto,
+  ) {
+    return this.emailClientService.send(companyId, typeId, id, body?.recipient);
   }
 
   @Get(':id/share-links')

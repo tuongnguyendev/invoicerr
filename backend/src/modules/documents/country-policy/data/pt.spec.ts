@@ -48,7 +48,7 @@ describe('PT — country-policy/data/pt.json', () => {
     }
   });
 
-  it('declares exactly the same 38 typeId::actionId pairs as the FR reference file, no duplicates', () => {
+  it('declares exactly the same 39 typeId::actionId pairs as the FR reference file, no duplicates', () => {
     const declared = pt.rules.map((r) => `${r.typeId}::${r.actionId}`).sort();
     expect(declared).toEqual(
       [
@@ -80,6 +80,8 @@ describe('PT — country-policy/data/pt.json', () => {
         'invoice::download-xml',
         'invoice::export-accounting',
         'invoice::share-link',
+        // "Email to client" - product convenience, see this rule's own resolutionNote in pt.json.
+        'invoice::email-client',
         'invoice::delete',
         'credit-note::save-draft',
         'credit-note::send',
@@ -106,10 +108,10 @@ describe('PT — country-policy/data/pt.json', () => {
         'goods-receipt::delete',
       ].sort(),
     );
-    expect(new Set(declared).size).toBe(38);
+    expect(new Set(declared).size).toBe(39);
   });
 
-  it('allows every one of its 38 rules - PT never itself needs an unblock', () => {
+  it('allows every one of its 39 rules - PT never itself needs an unblock', () => {
     expect(pt.rules.filter((r) => !r.allowed)).toEqual([]);
   });
 

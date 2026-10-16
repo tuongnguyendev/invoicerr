@@ -18,3 +18,8 @@ export interface RunActionDto {
    *  `data`. Absent/empty is fine for an action that declares no params. */
   params?: Record<string, unknown>;
 }
+
+/** Body of "POST /documents/:id/email-client". `recipient` overrides the client's primary contact. */
+export interface EmailClientDto {
+  recipient?: string;
+}

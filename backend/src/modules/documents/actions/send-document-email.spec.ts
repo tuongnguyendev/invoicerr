@@ -743,3 +743,53 @@ describe('sendDocumentInstanceEmail', () => {
     });
   });
 });
+
+describe('sendDocumentInstanceEmail - payUrl', () => {
+  afterEach(() => vi.resetAllMocks());
+
+  const document = {
+    id: 'inv-1',
+    typeId: 'invoice',
+    status: 'sent',
+    data: {},
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    number: 1,
+    displayNumber: 'INV-0001',
+  };
+
+  async function sendInvoice(payUrl?: string) {
+    mockSuccessfulRender();
+    (companyEmailTemplates.getCompanyDocumentEmailTemplates as Mock).mockResolvedValue({});
+    const { typeRegistry, referenceRegistry, mailService } = buildDeps();
+    await sendDocumentInstanceEmail(
+      { mailService: mailService as never, typeRegistry, referenceRegistry },
+      {
+        companyId: 'company-1',
+        typeId: 'invoice',
+        document,
+        recipient: 'c@example.com',
+        label: 'Invoice',
+        payUrl,
+      },
+    );
+    return mailService.sendForCompany.mock.calls[0][1] as {
+      text: string;
+      attachments: { filename: string }[];
+    };
+  }
+
+  it('interpolates {payUrl} into the shipped invoice body and attaches the PDF', async () => {
+    const mail = await sendInvoice('https://app.test/pay/tok');
+    expect(mail.text).toContain('You can view and pay it online here: https://app.test/pay/tok');
+    expect(mail.text).not.toContain('{payUrl}');
+    expect(mail.attachments[0].filename).toBe('INV-0001.pdf');
+  });
+
+  it('without a link (the "email" transport) drops the sentence instead of printing a literal or an empty link', async () => {
+    const mail = await sendInvoice(undefined);
+    expect(mail.text).not.toContain('{payUrl}');
+    expect(mail.text).not.toContain('pay it online');
+    expect(mail.text).toContain('Please find attached');
+  });
+});

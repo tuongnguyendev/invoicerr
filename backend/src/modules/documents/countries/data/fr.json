@@ -196,6 +196,15 @@
       },
       {
         "typeId": "invoice",
+        "actionId": "email-client",
+        "allowed": true,
+        "provenance": {
+          "kind": "unverified",
+          "resolutionNote": "invoice.email-client: this is an internal product operation, not a legal act: it emails an invoice that was ALREADY numbered and issued to the client's primary contact, with the PDF attached and a link to the pay page, and changes neither its status nor its number. No text identified for this country governs this specific convenience action, which is the same posture as invoice.share-link. Confirm with a dedicated review if that ever changes."
+        }
+      },
+      {
+        "typeId": "invoice",
         "actionId": "delete",
         "allowed": true,
         "statuses": ["draft"],

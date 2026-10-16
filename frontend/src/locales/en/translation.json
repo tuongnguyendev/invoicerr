@@ -5248,6 +5248,7 @@
       "downloadXmlXrechnung": "XRechnung 3.0 (Germany)",
       "downloadXmlError": "The normalized XML export could not be generated.",
       "shareLink": "Share link",
+      "emailClient": "Email to client",
       "processing": "Processing…",
       "amountInclVat": "incl. VAT",
       "lastActionError": "Last error: {{message}}",
@@ -5396,6 +5397,17 @@
       "corruptedDetail": "{{role}}: expected {{expected}}, got {{actual}}",
       "corruptedMissing": "file missing",
       "lastArchiveError": "This document was delivered, but archiving it failed and it is being retried automatically: {{message}}"
+    },
+    "emailClient": {
+      "title": "Email to client",
+      "description": "Sends the invoice as a PDF attachment, with a link where your customer can view and pay it online. The invoice itself does not change.",
+      "recipientLabel": "Send to",
+      "recipientDescription": "Prefilled from the client's primary contact. Change it to send to another address this once; the client record is not modified.",
+      "recipientPlaceholder": "client@example.com",
+      "send": "Send email",
+      "cancel": "Cancel",
+      "success": "Invoice emailed to {{recipient}}.",
+      "error": "The email could not be sent."
     },
     "shareLink": {
       "title": "Public share link",

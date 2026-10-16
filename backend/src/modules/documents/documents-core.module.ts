@@ -65,6 +65,7 @@ import { DocumentQueueDispatcher } from './queue/document-queue.dispatcher';
 import { DocumentQueueModule } from './queue/document-queue.module';
 import { DocumentScheduleSweepRunner } from './schedules/schedule-sweep-runner';
 import { DocumentSchedulesService } from './schedules/schedules.service';
+import { EmailClientService } from './email-client/email-client.service';
 import { ShareLinksService } from './share-links/share-links.service';
 import { CLIENT_CONTACT_LOOKUP, SignaturesService } from './signatures/signatures.service';
 import { buildArticleReferenceProvider } from './references/article-reference.provider';
@@ -716,6 +717,10 @@ function buildEntityReferenceRegistry(
     // `DocumentSchedulesService` right above (a plain class, resolved by Nest, reusing
     // `DocumentsService` for its own tenant-scoped 404s) — no factory needed.
     ShareLinksService,
+    // "Email to client" (email-client/): plain class like `ShareLinksService` above, constructor fully
+    // satisfied by this module's own graph (DocumentsService, ShareLinksService, the two registry tokens,
+    // ClientsService/MailService/SigningCertificatesService).
+    EmailClientService,
     // See signatures/signatures.service.ts's own header. A plain class,
     // resolved by Nest the same way `ShareLinksService` right above already is: Nest auto-wires its
     // constructor (`ClientsService`, `MailService`, both already available in this module; the
@@ -912,6 +917,7 @@ function buildEntityReferenceRegistry(
     PecNotificheService,
     PecInboxPollerService,
     ShareLinksService,
+    EmailClientService,
     SignaturesService,
     PaymentProviderRegistry,
     PaymentSessionsService,

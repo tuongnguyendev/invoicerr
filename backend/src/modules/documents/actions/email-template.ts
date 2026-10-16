@@ -336,6 +336,39 @@ export function findClientReferenceField(
   );
 }
 
+/** The id of the action that makes a type able to email a customer a pay link; see `typeOffersPayUrl`. */
+export const EMAIL_CLIENT_ACTION_ID = 'email-client';
+
+/** Whether `{payUrl}` belongs to this type's email vocabulary: keyed on the declared action, never on
+ *  a `typeId` (the same discipline as `findClientReferenceField`). */
+export function typeOffersPayUrl(descriptor: DocumentTypeDescriptor): boolean {
+  return descriptor.actions.some((action) => action.id === EMAIL_CLIENT_ACTION_ID);
+}
+
+/**
+ * Removes every LINE of the template that mentions `{key}`, plus the blank line left behind. Used when a
+ * send has no value for a placeholder whose sentence is meaningless without it (a pay link that does
+ * not exist): printing "view and pay it online here: " is worse than omitting the sentence. Operates on
+ * the raw template, before interpolation, so the dropped placeholder is never even looked at by the
+ * engine's warning logic; the engine's own contract is untouched.
+ */
+export function dropLinesReferencing(template: DocumentEmailTemplate, key: string): DocumentEmailTemplate {
+  const marker = `{${key}}`;
+  const drop = (text: string): string =>
+    text
+      .split('\n')
+      .filter((line) => !line.includes(marker))
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  return {
+    ...template,
+    subject: template.subject.includes(marker) ? drop(template.subject) : template.subject,
+    body: template.body.includes(marker) ? drop(template.body) : template.body,
+    ...(template.html?.includes(marker) ? { html: drop(template.html) } : {}),
+  };
+}
+
 /**
  * The fixed vocabulary `renderEmailTemplate` fills in for a document SEND — `displayNumber`,
  * `typeLabel`, `companyName`, `totalGross` are ALWAYS present (empty string where there is genuinely
@@ -373,6 +406,15 @@ export function buildEmailTemplateParts(input: {
    * (`totalGross`), neither of which is prose to translate.
    */
   language?: RenderLanguage;
+  /**
+   * The customer-facing pay link (absolute URL) — only the "Email to client" action
+   * (`email-client/email-client.service.ts`) has one. `payUrl` is KNOWN for every type that declares
+   * that action (`typeOffersPayUrl`): empty when this send has no link, which
+   * `sendDocumentInstanceEmail` pairs with `dropLinesReferencing` so a default template never prints
+   * "…pay it online here: ". A type without the action never gets the key at all, so a stray
+   * `{payUrl}` in a quote template keeps the engine's usual unknown-placeholder warning.
+   */
+  payUrl?: string;
 }): Record<string, string> {
   const language = input.language ?? DEFAULT_RENDER_LANGUAGE;
   const parts: Record<string, string> = {
@@ -390,6 +432,10 @@ export function buildEmailTemplateParts(input: {
       ? mailT(language)('documents.multipleOptionsTotal')
       : formatGrossTotal(input.totals),
   };
+
+  if (typeOffersPayUrl(input.descriptor)) {
+    parts.payUrl = input.payUrl ?? '';
+  }
 
   const clientField = findClientReferenceField(input.descriptor);
   const recipientName = clientField ? input.referenceLabels[clientField.key] : undefined;
@@ -436,12 +482,16 @@ export function describeDocumentEmailVocabulary(input: {
   if (findClientReferenceField(descriptor)) {
     vocabulary.recipientName = SAMPLE_RECIPIENT_NAME;
   }
+  if (typeOffersPayUrl(descriptor)) {
+    vocabulary.payUrl = SAMPLE_PAY_URL;
+  }
 
   return vocabulary;
 }
 
 const SAMPLE_TOTAL_GROSS = '1200.00 EUR';
 const SAMPLE_RECIPIENT_NAME = 'Acme Ltd';
+const SAMPLE_PAY_URL = 'https://app.example.com/pay/0a1b2c3d4e5f';
 
 /**
  * Every placeholder a real SEND can substitute for this type — i.e. exactly the key set

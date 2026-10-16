@@ -107,6 +107,7 @@ export {
   useDeleteDocumentSchedule,
 } from "./use-document-schedules"
 export { useShareLinks, useCreateShareLink, useRevokeShareLink, shareLinksKey } from "./use-share-links"
+export { useEmailClient } from "./use-email-client"
 export {
   usePublicInvoice,
   useCreatePublicInvoiceCheckout,
