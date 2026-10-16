@@ -21,7 +21,6 @@ export interface LayoutCompany {
   country?: string | null;
   countryCode?: string | null;
   email?: string | null;
-  phone?: string | null;
   dateFormat?: string | null;
 }
 
@@ -62,7 +61,6 @@ async function sellerBlock(companyId: string, company: LayoutCompany): Promise<R
     addressLines: formatAddressLines(company),
     identifiers: identifiersOf(identifiers, labels),
     email: company.email,
-    phone: company.phone,
   };
 }
 

@@ -25,7 +25,6 @@ const company = {
   country: 'United States',
   countryCode: 'US',
   email: 'billing@techfago.example',
-  phone: null,
   dateFormat: 'MM/dd/yyyy',
 };
 

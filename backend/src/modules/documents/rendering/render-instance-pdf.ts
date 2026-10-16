@@ -378,7 +378,6 @@ export async function renderDocumentInstance(
       country: true,
       countryCode: true,
       email: true,
-      phone: true,
       dateFormat: true,
       iban: true,
       language: true,

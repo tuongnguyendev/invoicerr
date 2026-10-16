@@ -48,7 +48,6 @@ export interface RenderPartyBlock {
   /** `{ label: 'EIN', value: '12-3456789' }` — printed as "EIN: 12-3456789". */
   identifiers: { label: string; value: string }[];
   email?: string | null;
-  phone?: string | null;
 }
 
 export interface BusinessLayoutContext {
@@ -260,7 +259,7 @@ function renderParty(party: RenderPartyBlock, nameClass = 'party-name'): string 
   for (const identifier of party.identifiers) {
     html += `<div class="party-line">${escapeHtmlSafe(`${identifier.label}: ${identifier.value}`)}</div>`;
   }
-  const contact = [party.email, party.phone].filter((value): value is string => !!value);
+  const contact = [party.email].filter((value): value is string => !!value);
   if (contact.length > 0) html += `<div class="party-line">${escapeHtmlSafe(contact.join(' · '))}</div>`;
   return html;
 }
