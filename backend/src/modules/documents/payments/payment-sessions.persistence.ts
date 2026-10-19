@@ -3,6 +3,7 @@ import { NotFoundException } from '@nestjs/common';
 import prisma from '@/prisma/prisma.service';
 
 import { PaymentCheckoutSessionStatus } from '../../../../prisma/generated/prisma/client';
+import { STRIPE_SESSION_LIFETIME_MS } from './providers/stripe/stripe-checkout-client';
 
 /**
  * Tenant-safe Prisma persistence for `PaymentCheckoutSession` — every query scoped by `companyId`
@@ -66,20 +67,46 @@ export async function createCheckoutSession(input: {
   return prisma.paymentCheckoutSession.create({ data: input });
 }
 
-/** The most recent still-PENDING session for this (company, document, provider) — reused rather than
- *  opening a second one when a client clicks "Pay" again before finishing (or abandoning) the first,
- *  so a re-click hands back the SAME provider link instead of orphaning one session per click. Ignores
- *  a session's own age: Stripe checkout sessions do expire (24h) on the provider's own side, but
- *  detecting that here would need a round trip to Stripe just to answer "is this still good" — a
- *  stale link simply fails on the provider's own hosted page, and the client comes back for a fresh
- *  one, the same recovery path a genuinely abandoned session already needs. */
+/** How long after creation a PENDING session may still be handed back, per provider. Reuse is only an
+ *  optimisation (one link per click storm instead of one orphan per click) — a fresh session is ALWAYS
+ *  safe — so every window errs short.
+ *  - Stripe: `STRIPE_SESSION_LIFETIME_MS` (23h, sent explicitly as `expires_at` — see
+ *    `stripe-checkout-client.ts`) minus one hour of margin for request latency and clock skew, because
+ *    the `createdAt` stored here is written AFTER the provider call returns.
+ *  - Mollie/PayPal: their hosted-page lifetimes depend on the payment method / order state and are not
+ *    pinned by this app, so a deliberately short 1h window.
+ *  Why this exists: the `checkout.session.expired` webhook is the ONLY thing that flips an abandoned
+ *  row to FAILED, and it never arrives when the endpoint is not configured or a delivery is lost — the
+ *  row then stayed PENDING forever and a customer opening the link days later landed on the provider's
+ *  "session timed out" page. */
+const REUSE_WINDOW_MS: Record<string, number> = { stripe: STRIPE_SESSION_LIFETIME_MS - 60 * 60 * 1000 };
+const DEFAULT_REUSE_WINDOW_MS = 60 * 60 * 1000;
+
+/** The most recent still-PENDING, still-FRESH session for this (company, document, provider) — reused
+ *  rather than opening a second one when a client clicks "Pay" again before finishing (or abandoning)
+ *  the first, so a re-click hands back the SAME provider link instead of orphaning one session per
+ *  click. "Fresh" = created within `REUSE_WINDOW_MS` (above), judged from our own `createdAt` so no
+ *  round trip to the provider is needed. An older PENDING row is simply SKIPPED, deliberately NOT
+ *  flipped to FAILED: `claimSessionForCompletion` only claims PENDING rows, so marking it FAILED
+ *  would make a late `checkout.session.completed` (a customer who paid at the very edge of the
+ *  window, or a provider whose session outlived our conservative window) silently unrecordable —
+ *  money received, invoice still unpaid. Left PENDING, it stays claimable and the genuine expiry
+ *  webhook (when configured) still closes it. */
 export async function findPendingSessionForDocument(
   companyId: string,
   documentId: string,
   providerId: string,
+  now: Date = new Date(),
 ): Promise<PaymentCheckoutSessionResult | null> {
+  const windowMs = REUSE_WINDOW_MS[providerId] ?? DEFAULT_REUSE_WINDOW_MS;
   return prisma.paymentCheckoutSession.findFirst({
-    where: { companyId, documentId, providerId, status: PaymentCheckoutSessionStatus.PENDING },
+    where: {
+      companyId,
+      documentId,
+      providerId,
+      status: PaymentCheckoutSessionStatus.PENDING,
+      createdAt: { gt: new Date(now.getTime() - windowMs) },
+    },
     orderBy: { createdAt: 'desc' },
   });
 }

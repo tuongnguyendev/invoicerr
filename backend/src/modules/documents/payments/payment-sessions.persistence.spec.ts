@@ -60,13 +60,52 @@ describe('createCheckoutSession', () => {
 });
 
 describe('findPendingSessionForDocument', () => {
-  it('scopes by company/document/provider and only ever asks for PENDING, most recent first', async () => {
+  const NOW = new Date('2026-10-19T12:00:00Z');
+  const hoursAgo = (h: number) => new Date(NOW.getTime() - h * 3600_000);
+
+  it('scopes by company/document/provider, only PENDING, most recent first, within the Stripe window (22h)', async () => {
     findFirst.mockResolvedValue(null);
-    await findPendingSessionForDocument('company-1', 'doc-1', 'stripe');
+    await findPendingSessionForDocument('company-1', 'doc-1', 'stripe', NOW);
 
     expect(findFirst).toHaveBeenCalledWith({
-      where: { companyId: 'company-1', documentId: 'doc-1', providerId: 'stripe', status: 'PENDING' },
+      where: {
+        companyId: 'company-1',
+        documentId: 'doc-1',
+        providerId: 'stripe',
+        status: 'PENDING',
+        createdAt: { gt: hoursAgo(22) },
+      },
       orderBy: { createdAt: 'desc' },
+    });
+  });
+
+  it('uses a short 1h window for providers whose lifetime this app does not pin', async () => {
+    findFirst.mockResolvedValue(null);
+    await findPendingSessionForDocument('company-1', 'doc-1', 'mollie', NOW);
+
+    expect(findFirst.mock.calls.at(-1)?.[0].where.createdAt).toEqual({ gt: hoursAgo(1) });
+  });
+
+  it('never mutates a stale row (a late completion webhook must still be claimable)', async () => {
+    findFirst.mockResolvedValue(null);
+    await findPendingSessionForDocument('company-1', 'doc-1', 'stripe', NOW);
+
+    expect(updateMany).not.toHaveBeenCalled();
+  });
+});
+
+describe('claimSessionForCompletion - late completion', () => {
+  it('claims by PENDING status alone, never by age, so a stale-but-unflipped row still completes', async () => {
+    updateMany.mockResolvedValue({ count: 1 });
+    findUnique.mockResolvedValue({ id: 'session-1', status: 'COMPLETED' });
+
+    const claimed = await claimSessionForCompletion('stripe', 'cs_old');
+
+    expect(claimed?.id).toBe('session-1');
+    expect(updateMany.mock.calls[0][0].where).toEqual({
+      providerId: 'stripe',
+      providerSessionId: 'cs_old',
+      status: 'PENDING',
     });
   });
 });

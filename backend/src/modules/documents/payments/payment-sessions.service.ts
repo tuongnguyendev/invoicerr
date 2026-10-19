@@ -211,8 +211,9 @@ export class PaymentSessionsService {
     // Reused ONLY when the amount still matches what a fresh computation would open — an outstanding
     // balance that moved since an earlier click (a partial payment recorded by other means in the
     // meantime) must never hand back a session quoting a now-wrong figure. The stale PENDING session is
-    // simply left behind, harmless: at worst it becomes an abandoned link on the provider's own hosted
-    // page (Stripe expires an unused checkout session after 24h on its own side).
+    // simply left behind, harmless. `findPendingSessionForDocument` also refuses a PENDING row older than
+    // the provider's reuse window, so a link whose provider session has expired (the expiry webhook
+    // may never arrive) is never handed back — a fresh session is opened instead.
     const pending = await findPendingSessionForDocument(companyId, documentId, providerId);
     if (pending && pending.amountMinor === settlement.outstandingMinor && pending.currency === currency) {
       return { checkoutUrl: pending.checkoutUrl };

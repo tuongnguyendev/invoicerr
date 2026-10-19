@@ -61,6 +61,23 @@ describe('RealStripeCheckoutClient', () => {
     expect(fetchMock.mock.calls[1][1].body as string).not.toContain('customer_email');
   });
 
+  it('sends an explicit expires_at 23h ahead (inside Stripe 30min-24h bounds)', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'cs_test_abc', url: 'https://checkout.stripe.com/pay/cs_test_abc' }),
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+    const before = Math.floor(Date.now() / 1000);
+
+    await new RealStripeCheckoutClient().createSession('sk_test_123', INPUT);
+
+    const params = new URLSearchParams(fetchMock.mock.calls[0][1].body as string);
+    const expiresAt = Number(params.get('expires_at'));
+    expect(expiresAt).toBeGreaterThanOrEqual(before + 23 * 3600);
+    expect(expiresAt).toBeLessThanOrEqual(before + 23 * 3600 + 5);
+  });
+
   it('throws with the provider-reported message on a non-ok response — never invents a session id', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,

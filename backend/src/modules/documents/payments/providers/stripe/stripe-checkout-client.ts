@@ -2,6 +2,9 @@ import { randomUUID } from 'node:crypto';
 
 import { CreateCheckoutSessionInput, CreateCheckoutSessionResult } from '../../provider';
 
+/** Lifetime requested for every Checkout session we open (Stripe bounds: 30min–24h). */
+export const STRIPE_SESSION_LIFETIME_MS = 23 * 60 * 60 * 1000;
+
 /**
  * The ONE network-calling piece of this integration — everything else in `providers/stripe/` (the
  * webhook signature check, the provider glue) is pure and network-free. Kept behind this narrow
@@ -48,6 +51,10 @@ export class RealStripeCheckoutClient implements StripeCheckoutClient {
     body.set('line_items[0][price_data][product_data][name]', input.description);
     // Prefills (and, per Stripe, locks) the email on the hosted page; omitted when unknown.
     if (input.customerEmail) body.set('customer_email', input.customerEmail);
+    // Explicit expiry (Stripe allows 30min–24h; its default is 24h) so the lifetime is a fact this app
+    // knows rather than assumes — `payment-sessions.persistence.ts#findPendingSessionForDocument`
+    // derives its reuse window from the same constant.
+    body.set('expires_at', String(Math.floor(Date.now() / 1000) + STRIPE_SESSION_LIFETIME_MS / 1000));
     for (const [key, value] of Object.entries(input.metadata)) {
       body.set(`metadata[${key}]`, value);
     }
